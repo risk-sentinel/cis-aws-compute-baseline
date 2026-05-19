@@ -1,0 +1,414 @@
+# Per-control partition applicability — auditor-facing flat table.
+# Values per partition: applicable | not_applicable | partial
+# `reason` is required when not_applicable or partial.
+# Keep this file in sync with `tag applicable_partitions:` on each control.
+
+controls:
+  - id: 2.3
+    title: "Ensure Tag Policies are Enabled"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 2.4
+    title: "Ensure an Organizational EC2 Tag Policy has been Created"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 2.5
+    title: "Ensure no AWS EC2 Instances are Older than 180 days"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 2.6
+    title: "Ensure detailed monitoring is enable for production EC2 Instances"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 2.7
+    title: "Ensure Default EC2 Security groups are not being used."
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 2.8
+    title: "Ensure the Use of IMDSv2 is Enforced on All Existing Instances"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 2.9
+    title: "Ensure use of AWS Systems Manager to manage EC2 instances"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 2.10
+    title: "Ensure unused ENIs are removed"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 2.11
+    title: "Ensure instances stopped for over 90 days are removed"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 2.12
+    title: "Ensure EBS volumes attached to an EC2 instance is marked for deletion upon instance termination"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 2.13
+    title: "Ensure Secrets and Sensitive Data are not stored directly in EC2 User Data"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 2.14
+    title: "Ensure EC2 Auto Scaling Groups Propagate Tags to EC2 Instances that it launches"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 2.1.1
+    title: "Ensure Consistent Naming Convention is used for Organizational AMI"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 2.1.2
+    title: "Ensure Amazon Machine Images (AMIs) are encrypted"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 2.1.3
+    title: "Ensure Only Approved Amazon Machine Images (AMIs) are Used"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 2.1.4
+    title: "Ensure Images (AMI) are not older than 90 days"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 2.1.5
+    title: "Ensure Images are not Publicly Available"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 2.2.1
+    title: "Ensure EBS volume encryption is enabled"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 2.2.2
+    title: "Ensure Public Access to EBS Snapshots is Disabled"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 2.2.3
+    title: "Ensure EBS volume snapshots are encrypted"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 2.2.4
+    title: "Ensure unused EBS volumes are removed"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 12.1
+    title: "Ensure AWS Config is Enabled for Lambda and Serverless"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 12.2
+    title: "Ensure Cloudwatch Lambda insights is enabled"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 12.3
+    title: "Ensure AWS Secrets manager is configured and being used by Lambda for databases"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 12.4
+    title: "Ensure least privilege is used with Lambda function access"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 12.5
+    title: "Ensure every Lambda function has its own IAM Role"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 12.6
+    title: "Ensure Lambda functions are not exposed to everyone."
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 12.7
+    title: "Ensure Lambda functions are referencing active execution roles."
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 12.8
+    title: "Ensure that Code Signing is enabled for Lambda functions."
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 12.9
+    title: "Ensure there are no Lambda functions with admin privileges within your AWS account"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 12.10
+    title: "Ensure Lambda functions do not allow unknown cross account access via permission policies."
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 12.11
+    title: "Ensure that the runtime environment versions used for your Lambda functions do not have end of support dates."
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 12.12
+    title: "Ensure encryption in transit is enabled for Lambda environment variables"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 8.1
+    title: "Ensure AWS Batch is configured with AWS Cloudwatch Logs."
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 8.2
+    title: "Ensure Batch roles are configured for cross-service confused deputy prevention"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 5.1
+    title: "Apply updates to any apps running in Lightsail"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 5.2
+    title: "Change default Administrator login names and passwords for applications"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 5.3
+    title: "Disable SSH and RDP ports for Lightsail instances when not needed."
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 5.4
+    title: "Ensure SSH is restricted to only IP address that should have this access."
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 5.5
+    title: "Ensure RDP is restricted to only IP address that should have this access."
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 5.6
+    title: "Disable IPv6 Networking if not in use within your organization."
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 5.7
+    title: "Ensure you are using an IAM policy to manage access to buckets in Lightsail."
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 5.8
+    title: "Ensure Lightsail instances are attached to the buckets"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 5.9
+    title: "Ensure that your Lightsail buckets are not publicly accessible"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 5.10
+    title: "Enable storage bucket access logging"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 5.11
+    title: "Ensure your Windows Server based lightsail instances are updated with the latest security patches."
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 5.12
+    title: "Change the auto-generated password for Windows based instances."
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 10.1
+    title: "Ensure Managed Platform updates is configured"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 10.2
+    title: "Ensure Persistent logs is setup and configured to S3"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 10.3
+    title: "Ensure access logs are enabled."
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 10.4
+    title: "Ensure that HTTPS is enabled on load balancer"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 6.1
+    title: "Ensure you are using VPC Endpoints for source code access"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 16.1
+    title: "Ensure communications between your applications and clients is encrypted."
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 3.1
+    title: "Ensure Amazon ECS task definitions using 'host' network mode do not allow privileged or root user access to the host"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 3.2
+    title: "Ensure 'assignPublicIp' is set to 'DISABLED' for Amazon ECS services"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 3.3
+    title: "Ensure Amazon ECS task definitions do not have 'pidMode' set to 'host'"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 3.4
+    title: "Ensure Amazon ECS task definitions do not have 'privileged' set to 'true'"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 3.5
+    title: "Ensure 'readonlyRootFilesystem' is set to 'true' for Amazon ECS task definitions"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 3.6
+    title: "Ensure secrets are not passed as container environment variables in Amazon ECS task definitions"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 3.7
+    title: "Ensure logging is configured for Amazon ECS task definitions"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 3.8
+    title: "Ensure Amazon ECS Fargate services are using the latest Fargate platform version"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 3.9
+    title: "Ensure monitoring is enabled for Amazon ECS clusters"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 3.10
+    title: "Ensure Amazon ECS services are tagged"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 3.11
+    title: "Ensure Amazon ECS clusters are tagged"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 3.12
+    title: "Ensure Amazon ECS task definitions are tagged"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 3.13
+    title: "Ensure only trusted images are used with Amazon ECS"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 3.14
+    title: "Ensure 'assignPublicIp' is set to 'DISABLED' for Amazon ECS task sets"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+
+  - id: 11.1
+    title: "Ensure customer-managed keys are used to encrypt AWS Fargate ephemeral storage data for Amazon ECS"
+    aws: applicable
+    aws-us-gov: applicable
+    reason: ''
+

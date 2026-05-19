@@ -1,0 +1,57 @@
+# Consumer inputs for cis-aws-compute.
+#
+# Override values per-environment via:
+#   cinc-auditor exec profiles/cis-aws-compute \
+#     --input-file profiles/cis-aws-compute/inputs.yml
+# or individually via --input name=value
+#
+# All inputs have sensible defaults — see inspec.yml for the catalogue
+# and README.md "Portability" for how each input composes. A worked
+# overlay sits at `examples/sparc.inputs.yml` (ECS Fargate + Lambda).
+
+# ----- AWS partition -----
+aws_partition: aws
+
+# ----- Compute service scope -----
+# Empty / unset (default) = all sections applicable. Uncomment to
+# scope to specific services and skip the rest.
+# applicable_services:
+#   - ec2              # Section 2 (EC2 / EBS / AMI / ENI / ASG)
+#   - ecs              # Sections 3 + 11 (ECS / Fargate)
+#   - lightsail        # Section 5
+#   - apprunner        # Section 6
+#   - batch            # Section 8
+#   - elasticbeanstalk # Section 10
+#   - lambda           # Section 12
+#   - simspaceweaver   # Section 16
+
+# ----- Tag policy enforcement -----
+# Empty defaults assert "any tag present" on each resource. Non-empty
+# enforces specific tag keys.
+# required_ecs_tags: [Environment, Owner, CostCenter]
+# required_ec2_tags: [Environment, Owner, CostCenter]
+
+# ----- Trusted image registries (CIS 3.13) -----
+# Empty default falls back to attestation. Non-empty enforces image
+# URI prefix membership for every running ECS container.
+# trusted_image_registries:
+#   - <acct>.dkr.ecr.us-east-1.amazonaws.com/
+#   - public.ecr.aws/<org>/
+
+# ----- Lambda stricter-than-CIS toggles -----
+# Default false; set true when failure observability requires every
+# async invocation route its dead-letters somewhere durable, or when
+# functions reach private VPC infrastructure.
+# lambda_require_dlq: true
+# lambda_require_vpc_attached: true
+
+# ----- Lambda runtime allowlist (CIS 12.x runtime-EOL family) -----
+# Empty default = every non-deprecated runtime passes. Non-empty
+# enforces strict membership.
+# lambda_runtime_allowlist:
+#   - python3.12
+#   - python3.13
+#   - nodejs20.x
+#   - nodejs22.x
+#   - java21
+#   - provided.al2023
