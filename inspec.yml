@@ -1,0 +1,251 @@
+name: cis-aws-compute
+title: AWS Compute Services CIS Baseline
+maintainer: Risk Sentinel
+copyright: Risk Sentinel
+copyright_email: support@risk-sentinel.org
+license: Apache-2.0
+summary: |
+  Validates AWS compute services against CIS AWS Compute Services Benchmark v1.1.0.
+  Targets AWS Commercial (aws) and AWS GovCloud non-DoD (aws-us-gov).
+  Per-control partition applicability is documented in
+  partition_applicability.yml and encoded as `tag applicable_partitions:`.
+version: 0.1.0
+inspec_version: '>= 5.0'
+
+inputs:
+  - name: aws_partition
+    type: string
+    value: aws
+    description: >-
+      AWS partition the scan is running against.
+      One of: aws (Commercial), aws-us-gov (GovCloud non-DoD).
+
+  - name: excluded_services
+    type: array
+    value: []
+    description: >-
+      Optional list of compute services to exclude from this scan. Empty
+      (default) = scan every service auto-detected as in-use. Entries
+      take precedence over both auto-detection and `forced_services`.
+
+      Section-to-service mapping (for both excluded_services and
+      forced_services):
+      - 'ec2'              — Section 2 (EC2 instances, AMIs, EBS, networking, tag policies).
+      - 'ecs'              — Sections 3 and 11 (task definitions, logging, image signing,
+                             Fargate ephemeral storage encryption).
+      - 'lightsail'        — Section 5.
+      - 'apprunner'        — Section 6.
+      - 'batch'            — Section 8.
+      - 'elasticbeanstalk' — Section 10.
+      - 'lambda'           — Section 12.
+      - 'simspaceweaver'   — Section 16.
+
+      Use this input when a service is provisioned in the target account
+      but intentionally out-of-scope for this audit (e.g., a sandbox
+      Lightsail instance, an old Elastic Beanstalk environment slated
+      for decommission). Default behaviour — scan everything that's
+      detected as in use — gives the secure-by-default posture.
+
+  - name: forced_services
+    type: array
+    value: []
+    description: >-
+      Optional list of compute services to force-INCLUDE in the scan,
+      even if no resources are auto-detected. Empty (default) = no
+      force-include; auto-detect alone governs scope.
+
+      Edge-case use: scan against an in-progress stand-up where the
+      consumer is provisioning a service this week but has zero
+      resources at the moment the scan runs. Forces the relevant
+      controls to evaluate (and likely FAIL) rather than silently
+      pass-N/A because nothing exists yet. `excluded_services` still
+      trumps this input.
+
+  - name: required_ecs_tags
+    type: array
+    value: []
+    description: >-
+      Optional list of tag keys that must be present on every ECS
+      cluster / service / task definition (CIS AWS Compute 3.10–3.12).
+      Empty (default) = don't enforce specific tag keys but still assert
+      that at least one tag is present on each resource. Non-empty =
+      each listed key must be present on each resource.
+
+      Example for a consumer using a standard tag policy:
+      `required_ecs_tags: [Environment, Owner, CostCenter, DataClassification]`.
+
+  - name: required_ec2_tags
+    type: array
+    value: []
+    description: >-
+      Optional list of tag keys that must be present on every EC2
+      instance (CIS AWS Compute 2.3, 2.4 — AWS Organizations tag
+      policies). Empty (default) = don't enforce specific keys but
+      still assert that at least one tag is present. Non-empty = each
+      listed key must be present.
+
+      Note: CIS 2.3 / 2.4 reference org-wide tag policies configured via
+      AWS Organizations, which isn't addressable per-account. Per-
+      resource enforcement here is a defence-in-depth substitute; the
+      true org-policy check is handled via attestation.
+
+  - name: trusted_image_registries
+    type: array
+    value: []
+    description: >-
+      Optional allowlist of container-image registry URI prefixes that
+      are considered "trusted" for ECS task definitions (CIS AWS
+      Compute 3.13 — only trusted images). Empty (default) = control
+      falls back to an attestation skip (operators provide the
+      justification manually). Non-empty = automated describe asserting
+      each container's `image` URI starts with one of the listed
+      prefixes.
+
+      Typical registry prefix values:
+      - '<acct>.dkr.ecr.us-east-1.amazonaws.com/'   (private ECR)
+      - 'public.ecr.aws/<org>/'                    (public ECR)
+      - 'registry.access.redhat.com/'              (Red Hat signed)
+
+      AWS Signer / KMS signature verification is a richer substitute
+      but not yet expressible via vendored resources; tracked as
+      future work.
+
+  - name: lambda_require_dlq
+    type: boolean
+    value: false
+    description: >-
+      Stricter-than-CIS toggle for Lambda CIS 12.x family. When true,
+      every Lambda function in scope must have a dead-letter queue
+      (`dead_letter_config.target_arn`) configured. Default false keeps
+      the profile literally aligned with the CIS baseline. Set true
+      when failure observability requires every async invocation route
+      its dead letters somewhere durable (e.g., credential-rotation
+      Lambdas, scheduled job runners).
+
+  - name: lambda_require_vpc_attached
+    type: boolean
+    value: false
+    description: >-
+      Stricter-than-CIS toggle for Lambda CIS 12.x family. When true,
+      every Lambda function in scope must be VPC-attached
+      (`vpc_config.vpc_id` present and non-empty). Default false keeps
+      the profile literally aligned with the CIS baseline. Set true
+      when functions reach private VPC infrastructure (RDS, ElastiCache,
+      Secrets Manager via VPC endpoints) and you want the scanner to
+      flag any function escaping that posture.
+
+  - name: lambda_runtime_allowlist
+    type: array
+    value: []
+    description: >-
+      Optional allowlist of Lambda runtime identifiers that are still
+      supported (CIS AWS Compute 12.x runtime-EOL family). Empty
+      (default) = every non-deprecated runtime passes. Non-empty = each
+      function's `runtime` must be in the list; anything else fails.
+
+      Examples: ['python3.12', 'python3.13', 'nodejs20.x', 'nodejs22.x',
+      'java21', 'provided.al2023']. Keep in lockstep with AWS's published
+      runtime-support matrix.
+
+  - name: scan_regions
+    type: array
+    value: []
+    description: >-
+      Explicit region allowlist for region-scoped checks. Empty (default)
+      = dynamic discovery via compute_client.describe_regions — auto-
+      narrows to the target partition. Pin to a specific list for faster
+      / scoped scans.
+
+  - name: stopped_instance_max_age_days
+    type: numeric
+    value: 90
+    description: >-
+      Maximum days an EC2 instance may remain in the `stopped` state
+      before C-2.11 fails it. Default 90 per CIS. Tighten / loosen per
+      consumer hygiene policy.
+
+  - name: lightsail_allowed_ssh_cidrs
+    type: array
+    value: []
+    description: >-
+      Allowlist of CIDRs that are permitted SSH access (port 22) on
+      Lightsail instances (C-5.4). Empty (default) means *any* world-open
+      SSH (0.0.0.0/0) is a violation; the consumer must list the
+      bastion / VPN CIDRs that are intentionally allowed. Listed
+      instances passing the allowlist are accepted.
+
+  - name: approved_amis
+    type: array
+    value: []
+    description: >-
+      Allowlist of approved Amazon Machine Image IDs (CIS §2.1.3).
+      Empty (default) skips the AMI-allowlist check (control becomes
+      attestation with reference). Non-empty fails any EC2 instance
+      whose `image_id` is not in the list.
+
+  - name: approved_ami_naming_pattern
+    type: string
+    value: ''
+    description: >-
+      Regex pattern that approved AMIs' `name` field must match (CIS
+      §2.1.1 — Consistent Naming Convention). Empty (default) skips
+      the naming-convention check. Example:
+      `^myorg-(ubuntu|amzn2|al2023)-\\d{4}-\\d{2}-\\d{2}$`.
+
+  # tag_policy_attestation_reference removed — CIS 2.3 now enforces
+  # per-resource tag policy via required_ec2_tags (empty → FAIL).
+  # ec2_user_data_attestation_reference removed — CIS 2.13 now runs
+  # an automated heuristic scan over user_data; genuine false
+  # positives are handled via HDF amendments.
+
+  - name: lambda_secrets_attestation_reference
+    type: string
+    value: ''
+    description: >-
+      Reference to the consumer's Lambda + Secrets Manager integration
+      review (CIS §12.3). Lambda function secret usage is
+      consumer-pattern-specific; consumer attests from their secrets
+      review evidence.
+
+  - name: aws_config_attestation_reference
+    type: string
+    value: ''
+    description: >-
+      Reference to the consumer's AWS Config recorder coverage review
+      (CIS §12.1 — AWS Config for Lambda). Operators attest from
+      their AWS Config dashboard / Conformance Pack evidence.
+
+  - name: batch_iam_attestation_reference
+    type: string
+    value: ''
+    description: >-
+      Reference to the consumer's Batch service-role IAM trust policy
+      review (CIS §8.2 — confused-deputy prevention). Operators
+      attest from their IAM trust-policy review for AWS Batch.
+
+  - name: trusted_image_attestation_reference
+    type: string
+    value: ''
+    description: >-
+      Reference to the consumer's container-image trust evidence (CIS
+      §3.13). Surfaces in the §3.13 attestation skip when
+      `trusted_image_registries` input is empty. Populate with the
+      AWS Signer / image-bake-pipeline / Wiz-Cosign verification
+      evidence path.
+
+  - name: lightsail_allowed_rdp_cidrs
+    type: array
+    value: []
+    description: >-
+      Allowlist of CIDRs that are permitted RDP access (port 3389) on
+      Lightsail instances (C-5.5). Same semantics as
+      `lightsail_allowed_ssh_cidrs`.
+
+supports:
+  - platform: aws
+
+depends:
+  - name: inspec-aws
+    git: https://github.com/inspec/inspec-aws.git
+    branch: main
+    # TODO: pin to a tag after first green CI run.
