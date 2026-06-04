@@ -95,8 +95,7 @@ control 'C-8.2' do
   tag cis_level:             1
   tag cis_scored:            true
   tag applicable_partitions: ['aws', 'aws-us-gov']
-  tag implementation_status: 'alternative'
-  tag attestation_category:  'policy'
+  tag implementation_status: 'implemented'
   tag exec_validated:        false
 
   applicable_partition = ['aws', 'aws-us-gov'].include?(input('aws_partition'))
@@ -110,24 +109,18 @@ control 'C-8.2' do
     applicable
   end
 
-  # Batch service-role confused-deputy review. Converted to Pass-with-evidence
-  # via document_attestation (sparc-validate#154): the boundary's IAM review
-  # record is a `boundary`-class doc. URI defaults via attestation_uri(:boundary,
-  # 'C-8.2'); empty -> Skip (preserves the prior attestation + saf attest apply
-  # fallback). FOLLOW-UP: automatable — enumerate Batch service roles and assert
-  # aws:SourceAccount / aws:SourceArn trust-policy conditions (needs a net-new
-  # Batch resource via the aws_client escape hatch); tracked separately.
-  uri          = input('c_8_2_attestation_uri', value: attestation_uri(:boundary, 'C-8.2'))
+  # VERIFY-don't-trust (Phase C): Batch service-role confused-deputy posture is
+  # API-verifiable — enumerate Batch compute-environment service roles and assert
+  # each trust policy carries an aws:SourceAccount / aws:SourceArn condition
+  # (aws_batch_confused_deputy). VERIFY is the default; the attestation path is an
+  # explicit OPT-OUT (set c_8_2_attestation_uri) for consumers whose scanner role
+  # lacks batch:DescribeComputeEnvironments / iam:GetRole.
+  uri          = input('c_8_2_attestation_uri', value: '')
   max_age_days = input('c_8_2_attestation_max_age_days', value: 365)
 
   if uri.to_s.empty?
-    ref = input('batch_iam_attestation_reference').to_s
-    rationale = 'attestation-required: Batch service-role trust-policy (aws:SourceAccount + ' \
-                'aws:SourceArn) review. Set boundary_docs_base / c_8_2_attestation_uri to the IAM ' \
-                'review record, or supply a CMS-pattern attestation via `saf attest apply`.'
-    rationale += " Reference: #{ref}." unless ref.empty?
-    describe 'AWS Batch service-role confused-deputy review' do
-      skip rationale
+    describe aws_batch_confused_deputy do
+      its('roles_without_source_conditions') { should be_empty }
     end
   else
     doc = document_attestation(uri, max_age_days: max_age_days)
