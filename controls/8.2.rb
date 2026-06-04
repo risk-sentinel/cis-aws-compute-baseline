@@ -96,6 +96,7 @@ control 'C-8.2' do
   tag cis_scored:            true
   tag applicable_partitions: ['aws', 'aws-us-gov']
   tag implementation_status: 'alternative'
+  tag attestation_category:  'policy'
   tag exec_validated:        false
 
   applicable_partition = ['aws', 'aws-us-gov'].include?(input('aws_partition'))
@@ -109,11 +110,37 @@ control 'C-8.2' do
     applicable
   end
 
-  ref = input('batch_iam_attestation_reference').to_s
-  rationale = ref.empty? ?
-    'Requires manual review and attestation provided for this control (Batch service-role trust-policy inspection for aws:SourceAccount + aws:SourceArn conditions requires resolving every Batch role; operators attest from their IAM review record. Populate batch_iam_attestation_reference input to surface the reference here.)' :
-    "Requires manual review and attestation provided for this control (consumer attestation: #{ref})"
-  describe 'AWS Batch service-role confused-deputy review' do
-    skip rationale
+  # Batch service-role confused-deputy review. Converted to Pass-with-evidence
+  # via document_attestation (sparc-validate#154): the boundary's IAM review
+  # record is a `boundary`-class doc. URI defaults via attestation_uri(:boundary,
+  # 'C-8.2'); empty -> Skip (preserves the prior attestation + saf attest apply
+  # fallback). FOLLOW-UP: automatable — enumerate Batch service roles and assert
+  # aws:SourceAccount / aws:SourceArn trust-policy conditions (needs a net-new
+  # Batch resource via the aws_client escape hatch); tracked separately.
+  uri          = input('c_8_2_attestation_uri', value: attestation_uri(:boundary, 'C-8.2'))
+  max_age_days = input('c_8_2_attestation_max_age_days', value: 365)
+
+  if uri.to_s.empty?
+    ref = input('batch_iam_attestation_reference').to_s
+    rationale = 'attestation-required: Batch service-role trust-policy (aws:SourceAccount + ' \
+                'aws:SourceArn) review. Set boundary_docs_base / c_8_2_attestation_uri to the IAM ' \
+                'review record, or supply a CMS-pattern attestation via `saf attest apply`.'
+    rationale += " Reference: #{ref}." unless ref.empty?
+    describe 'AWS Batch service-role confused-deputy review' do
+      skip rationale
+    end
+  else
+    doc = document_attestation(uri, max_age_days: max_age_days)
+    describe "C-8.2 Batch confused-deputy IAM-review attestation (#{uri})" do
+      it 'is reachable (no connection error)' do
+        expect(doc.connection_error).to be_nil, "attestation unreachable: #{doc.connection_error}"
+      end
+      it 'exists' do
+        expect(doc.exists?).to eq(true)
+      end
+      it "is current within #{max_age_days} days" do
+        expect(doc.current?).to eq(true)
+      end
+    end
   end
 end

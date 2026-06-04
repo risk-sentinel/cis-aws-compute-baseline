@@ -241,6 +241,41 @@ inputs:
       Lightsail instances (C-5.5). Same semantics as
       `lightsail_allowed_ssh_cidrs`.
 
+  # ---- document_attestation evidence-class bases (sparc-validate#154) ----
+  # Three evidence classes; provider inferred from each base's URI scheme.
+  # attestation_uri(:class,'name') -> "<base>/<name>.<ext>"; unset base -> '' ->
+  # control SKIPs (saf attest apply-able). Providers: s3:// https://
+  # github://owner/repo/path[@ref] gitlab://<enc-project>/path[@ref] file:///path
+  - name: leveraged_evidence_base
+    type: string
+    value: ''
+    description: >-
+      Base location of leveraged-SYSTEM authorizations the boundary inherits
+      (AWS FedRAMP / SOC 2 / ISO). No inherited controls in this profile today.
+  - name: policy_provider_base
+    type: string
+    value: ''
+    description: >-
+      Base location of policy-PROVIDER documents the boundary leverages (shared /
+      templated / parent-org policies).
+  - name: boundary_docs_base
+    type: string
+    value: ''
+    description: >-
+      Base location of the boundary system's OWN governance docs (policies,
+      plans, periodic IAM-review records). Backs C-8.2 (Batch IAM review).
+  - name: c_8_2_attestation_uri
+    type: string
+    value: ''
+    description: >-
+      Override URI of the Batch service-role trust-policy (confused-deputy) IAM
+      review record (C-8.2). Empty -> resolves via boundary_docs_base; SKIPs if unset.
+  - name: c_8_2_attestation_max_age_days
+    type: numeric
+    value: 365
+    description: >-
+      Staleness window (days) for the C-8.2 Batch IAM-review attestation.
+
 supports:
   - platform: aws
 
