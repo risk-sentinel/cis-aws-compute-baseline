@@ -205,3 +205,7 @@ Under `libraries/`:
 ## See also
 
 Top-level `README.md` for overall repo state and the sub-issue tracker for per-profile progress.
+
+---
+
+[![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=risk-sentinel_cis-aws-compute-v1.1.0)](https://sonarcloud.io/summary/new_code?id=risk-sentinel_cis-aws-compute-v1.1.0)
