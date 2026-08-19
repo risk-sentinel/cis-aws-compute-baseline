@@ -1,0 +1,99 @@
+# =============================================================================
+# cis-aws-compute-baseline — reference inputs
+#
+#   cp inputs/example.yml inputs/mine.yml   # edit, then:
+#   cinc-auditor exec . -t aws:// --input-file inputs/mine.yml
+#
+# --input-file is NOT optional. cinc-auditor does not auto-load a profile-root
+# inputs file, and the service-scoping pair below decides which of the 68
+# controls apply to you at all.
+# =============================================================================
+
+# ---- REQUIRED TO RUN --------------------------------------------------------
+
+# Which AWS partition is being scanned.
+#   aws         AWS Commercial
+#   aws-us-gov  AWS GovCloud (non-DoD)
+aws_partition: aws
+
+# ---- SERVICE SCOPING — the first thing to set -------------------------------
+#
+# This profile covers more compute services than any one consumer runs: EC2,
+# ECS, Lambda, Batch, Lightsail, Auto Scaling. By default it assesses whatever
+# it discovers, and scopes out what is not deployed.
+#
+# Scoping down is the NORMAL first step, not an advanced option. A consumer who
+# does not run Lightsail should say so, rather than reading its controls as
+# findings.
+
+# Services to drop from the scan entirely.
+#   excluded_services: [lightsail, batch]
+excluded_services: []
+
+# Services to assess even if nothing is discovered — use when a service should
+# be present and its absence is itself the finding.
+forced_services: []
+
+# Regions to enumerate. EMPTY = every region, discovered dynamically.
+# Narrowing makes the scan faster and blinder.
+scan_regions: []
+
+# ---- POLICY THRESHOLDS ------------------------------------------------------
+
+# Days a stopped EC2 instance may sit before it is flagged.
+stopped_instance_max_age_days: 90
+
+# Lambda hardening requirements. Both default OFF because neither is universal:
+# a dead-letter queue matters for async invocation, and VPC attachment is only
+# right when the function needs private-network reachability. Turn them on when
+# they reflect your standard.
+lambda_require_dlq: false
+lambda_require_vpc_attached: false
+
+# ---- ALLOW-LISTS — empty is a real state, not a placeholder -----------------
+#
+# Each of these empty means the control has nothing to check against and reports
+# that, rather than silently passing.
+
+# Runtimes Lambda functions may use. EMPTY = no runtime policy enforced.
+#   lambda_runtime_allowlist: [python3.12, nodejs22.x]
+lambda_runtime_allowlist: []
+
+# Container registries images may come from.
+trusted_image_registries: []
+
+# AMIs approved for use, by id.
+approved_amis: []
+
+# Regex an approved AMI name must match, as an alternative to listing ids.
+# EMPTY = no naming policy enforced.
+approved_ami_naming_pattern: ''
+
+# CIDRs permitted to reach Lightsail instances over SSH / RDP.
+# EMPTY = any exposure is a finding, which is the safe default.
+lightsail_allowed_ssh_cidrs: []
+lightsail_allowed_rdp_cidrs: []
+
+# Tag keys every ECS / EC2 resource must carry.
+# EMPTY = at least one non-system tag is required, but no specific key.
+required_ecs_tags: []
+required_ec2_tags: []
+
+# ---- ATTESTATION — evidence for what no API can answer ----------------------
+#
+# Free-form references (doc path, URL, ticket id) for controls no compute API
+# can answer. EMPTY = the control skips with a rationale rather than passing.
+
+lambda_secrets_attestation_reference: ''
+aws_config_attestation_reference: ''
+batch_iam_attestation_reference: ''
+trusted_image_attestation_reference: ''
+
+leveraged_evidence_base: ''
+policy_provider_base: ''
+boundary_docs_base: ''
+
+# Direct URI override for the C-8.2 attestation.
+# EMPTY = resolved from boundary_docs_base; if that is empty too, it skips.
+c_8_2_attestation_uri: ''
+c_8_2_attestation_max_age_days: 365
