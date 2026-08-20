@@ -1,5 +1,7 @@
 # cis-aws-compute-baseline
 
+[![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=risk-sentinel_cis-aws-compute-v1.1.0)](https://sonarcloud.io/summary/new_code?id=risk-sentinel_cis-aws-compute-v1.1.0)
+
 InSpec / CINC Auditor profile validating AWS compute services against the
 **CIS AWS Compute Services Benchmark v1.1.0** — 68 controls across EC2, ECS,
 Lambda, Batch, Lightsail and Auto Scaling.
