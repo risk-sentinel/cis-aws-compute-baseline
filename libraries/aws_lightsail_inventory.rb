@@ -6,7 +6,7 @@
 # returns the violations list for the corresponding §5.N check.
 #
 # Defensive `aws-sdk-lightsail` require: NOT bundled in upstream
-# cinc-auditor 7.0.107. Use risksentinel/cinc-auditor extended image
+# cinc-auditor 7.0.107. Use an extended auditor image that bundles the gem
 # (your CI image-bake tracker) or controls fall back to attestation rationale.
 #
 # Per-region instantiation (consistent with other compute libraries).
