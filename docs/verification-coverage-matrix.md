@@ -5,7 +5,7 @@ wherever the platform can answer it; never accept a human attestation as proof
 of a checkable fact.**
 
 Most automation was already established (the auto-detect pre-release pass + PR
-#162, which flipped 8 mis-tagged controls to `implemented`: 63 implemented).
+A later correction flipped 8 mis-tagged controls to `implemented`: 63 implemented).
 
 | Control(s) | Disposition | Notes |
 |---|---|---|
