@@ -36,7 +36,28 @@ control 'C-3.14' do
     Repeat for each cluster and service.
   "
   desc  'fix', "
-    TODO: fix text missing in source XCCDF
+    From Command Line:
+
+    `assignPublicIp` is fixed when a task set is created and cannot be changed in
+    place, so remediation means creating a replacement task set and retiring the
+    old one.
+
+    Create the replacement with public IP assignment disabled:
+
+    ```
+    aws ecs create-task-set --cluster <cluster> --service <service> --task-definition <task-definition> --network-configuration 'awsvpcConfiguration={subnets=[<subnet-id>],securityGroups=[<sg-id>],assignPublicIp=DISABLED}'
+    ```
+
+    Shift traffic to it, then delete the task set that assigned a public IP:
+
+    ```
+    aws ecs delete-task-set --cluster <cluster> --service <service> --task-set <task-set-arn>
+    ```
+
+    Once the public IP is gone the task reaches AWS service endpoints through the
+    VPC rather than the internet gateway, so confirm the subnet has a NAT gateway
+    or interface endpoints for ECR, CloudWatch Logs and Secrets Manager before
+    shifting traffic, or the new task set will fail to start.
   "
   tag severity:              'medium'
   tag nist:                  ['AC-3', 'AC-8 a']
