@@ -241,7 +241,7 @@ inputs:
       Lightsail instances (C-5.5). Same semantics as
       `lightsail_allowed_ssh_cidrs`.
 
-  # ---- document_attestation evidence-class bases (sparc-validate#154) ----
+  # ---- document_attestation evidence-class bases ----
   # Three evidence classes; provider inferred from each base's URI scheme.
   # attestation_uri(:class,'name') -> "<base>/<name>.<ext>"; unset base -> '' ->
   # control SKIPs (saf attest apply-able). Providers: s3:// https://

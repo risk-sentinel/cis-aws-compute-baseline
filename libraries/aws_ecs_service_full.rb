@@ -6,7 +6,7 @@
 #   - tag_keys (CIS 3.10)
 #
 # Instantiation:
-#   aws_ecs_service_full(cluster: 'prod-sparc', service: 'api')
+#   aws_ecs_service_full(cluster: 'prod', service: 'api')
 
 class AwsEcsServiceFull < AwsResourceBase
   name "aws_ecs_service_full"

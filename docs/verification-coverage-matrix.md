@@ -16,7 +16,7 @@ Most automation was already established (the auto-detect pre-release pass + PR
 ## Residual attestation — why
 - **C-5.x Lightsail** — patch compliance and credential rotation happen inside the
   guest OS; the Lightsail control plane exposes neither. No API fact to assert.
-  (SPARC runs no Lightsail; built for non-SPARC consumers.) Freshness floor retained.
+  (Built for consumers that do run Lightsail.) Freshness floor retained.
 
 `exec_validated: false` on C-8.2 — the Batch/IAM trust-policy resource is not yet
 verified against a live account; validate before relying on a FAIL.
