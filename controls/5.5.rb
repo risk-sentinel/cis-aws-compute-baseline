@@ -147,7 +147,7 @@ control 'C-5.5' do
   end
 
   inv = aws_lightsail_inventory(
-    regions:            input('scan_regions'),
+    regions:            compute_scan_regions,
     allowed_rdp_cidrs:  input('lightsail_allowed_rdp_cidrs'),
   )
   if inv.connection_error

@@ -92,7 +92,7 @@ control 'C-2.2.1' do
   end
 
   describe 'EBS volumes with encryption disabled' do
-    subject { aws_ebs_volumes_multi_region(regions: input('scan_regions')).where(encrypted: false).volume_ids }
+    subject { aws_ebs_volumes_multi_region(regions: compute_scan_regions).where(encrypted: false).volume_ids }
     it { should be_empty }
   end
 end

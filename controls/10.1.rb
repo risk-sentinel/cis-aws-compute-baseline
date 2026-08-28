@@ -91,7 +91,7 @@ control 'C-10.1' do
     applicable
   end
 
-  describe aws_elastic_beanstalk_environments(regions: input('scan_regions')) do
+  describe aws_elastic_beanstalk_environments(regions: compute_scan_regions) do
     its('environments_without_managed_updates') { should be_empty }
   end
 end

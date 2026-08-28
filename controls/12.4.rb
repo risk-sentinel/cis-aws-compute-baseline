@@ -50,7 +50,7 @@ control 'C-12.4' do
     applicable
   end
 
-  describe aws_lambda_compliance(regions: input('scan_regions')) do
+  describe aws_lambda_compliance(regions: compute_scan_regions) do
     its('functions_with_admin_policy') { should be_empty }
   end
 end

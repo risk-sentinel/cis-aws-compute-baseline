@@ -197,7 +197,7 @@ control 'C-2.9' do
     applicable
   end
 
-  describe aws_ssm_managed_instances(regions: input('scan_regions')) do
+  describe aws_ssm_managed_instances(regions: compute_scan_regions) do
     its('unmanaged_running_instances') { should be_empty }
   end
 end

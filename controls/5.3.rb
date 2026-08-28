@@ -159,7 +159,7 @@ control 'C-5.3' do
   end
 
   inv = aws_lightsail_inventory(
-    regions:            input('scan_regions'),
+    regions:            compute_scan_regions,
     allowed_ssh_cidrs:  input('lightsail_allowed_ssh_cidrs'),
     allowed_rdp_cidrs:  input('lightsail_allowed_rdp_cidrs'),
   )

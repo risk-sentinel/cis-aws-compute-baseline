@@ -91,7 +91,7 @@ control 'C-2.2.2' do
     applicable
   end
 
-  describe aws_ebs_snapshot_public_access(regions: input('scan_regions')) do
+  describe aws_ebs_snapshot_public_access(regions: compute_scan_regions) do
     its('public_snapshots') { should be_empty }
   end
 end

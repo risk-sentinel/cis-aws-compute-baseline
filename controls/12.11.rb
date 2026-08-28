@@ -142,7 +142,7 @@ control 'C-12.11' do
       end
     end
   else
-    describe aws_lambda_compliance(regions: input('scan_regions'), runtime_allowlist: allowlist) do
+    describe aws_lambda_compliance(regions: compute_scan_regions, runtime_allowlist: allowlist) do
       its('functions_with_eol_runtime') { should be_empty }
     end
   end

@@ -84,7 +84,7 @@ control 'C-3.14' do
     applicable
   end
 
-  describe aws_ecs_task_sets(regions: input('scan_regions')) do
+  describe aws_ecs_task_sets(regions: compute_scan_regions) do
     its('task_sets_with_public_ip') { should be_empty }
   end
 end
