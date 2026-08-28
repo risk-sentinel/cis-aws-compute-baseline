@@ -117,31 +117,43 @@ control 'C-2.1.3' do
     applicable
   end
 
-  approved = Array(input('approved_amis'))
-  if approved.empty?
-    # Empty input is a CONFIGURATION FAILURE, not an attestation slot.
-    # CIS 2.1.3 requires the consumer to declare an approved AMI catalog;
-    # without one, the control cannot evaluate compliance and must
-    # not pass silently. Populate `approved_amis` with the AMI IDs
-    # the organization has vetted (typically a Packer-bake output set
-    # or AWS-curated golden-AMI IDs).
-    describe 'approved_amis input' do
-      it 'must be populated for CIS 2.1.3 to evaluate' do
-        expect(approved).not_to be_empty,
-          'Set approved_amis to a list of AMI IDs the organization has vetted (e.g., [ami-0123456789abcdef0, ami-0fedcba9876543210]). Empty input means CIS 2.1.3 has no allowlist to evaluate against; flagged as FAIL rather than silently skipping.'
-      end
+  approved = Array(input('approved_amis')).map(&:to_s)
+  amis = aws_ec2_amis_in_use(
+    regions:        compute_scan_regions,
+    trusted_owners: Array(input('trusted_ami_owner_ids')).map(&:to_s),
+  )
+
+  if amis.connection_error
+    describe 'AMI provenance' do
+      skip "AMIs in use could not be enumerated: #{amis.connection_error}"
     end
   else
-    approved_set = approved.map(&:to_s)
-    # Vendored aws_ec2_instances FilterTable does not register `state` or
-    # `image_id` columns — `.where { state == "running" }` raises
-    # NameError. The local aws_ec2_inventory exposes every instance field
-    # via `to_h`, so iterate it directly.
-    aws_ec2_inventory.instances.each do |inst|
-      next unless inst.dig(:state, :name).to_s == "running"
-      describe "EC2 instance #{inst[:instance_id]} AMI" do
-        subject { inst[:image_id].to_s }
-        it { should be_in approved_set }
+    # Provenance signals that need no configuration. These assert something on
+    # the first run, before anyone has curated a catalogue -- which is the point,
+    # since an empty catalogue is exactly the state an adopter starts in.
+    describe amis do
+      its('public_amis')          { should be_empty }
+      its('deregistered_amis')    { should be_empty }
+      its('untrusted_owner_amis') { should be_empty }
+    end
+
+    if approved.empty?
+      # Still a configuration failure rather than an attestation slot -- but now
+      # the failure names the AMIs actually in use, so the operator can populate
+      # the catalogue from it instead of guessing.
+      describe 'approved_amis input' do
+        it 'must be populated for CIS 2.1.3 to evaluate' do
+          expect(approved).not_to be_empty,
+            "Set approved_amis to the AMI IDs the organization has vetted. " \
+            "Discovered in use right now: #{amis.inventory.join(' | ')}. " \
+            "Empty input means CIS 2.1.3 has no allowlist to evaluate against; " \
+            "flagged as FAIL rather than silently skipping."
+        end
+      end
+    else
+      describe "AMIs outside the approved catalogue" do
+        subject { amis.amis_not_in(approved) }
+        it { should be_empty }
       end
     end
   end

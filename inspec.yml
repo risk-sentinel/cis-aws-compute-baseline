@@ -178,18 +178,32 @@ inputs:
     type: array
     value: []
     description: >-
-      Allowlist of approved Amazon Machine Image IDs (CIS §2.1.3).
-      Empty (default) skips the AMI-allowlist check (control becomes
-      attestation with reference). Non-empty fails any EC2 instance
-      whose `image_id` is not in the list.
+      Allowlist of approved Amazon Machine Image IDs (CIS §2.1.3). Empty
+      (default) FAILS the control -- it does not skip it -- and the failure
+      lists the AMIs discovered in use so the catalogue can be populated from
+      what is actually running. Non-empty fails any instance whose image_id is
+      not in the list.
+
+  - name: trusted_ami_owner_ids
+    type: array
+    value: []
+    description: >-
+      AWS account IDs, besides the account under scan, whose AMIs are trusted
+      (a central image-bake account, or a vendor whose marketplace image is a
+      deliberate choice). Empty means this account only, which is the strict
+      reading: a third-party image running with an instance role is a decision
+      that should be declared rather than assumed. Independent of
+      `approved_amis` -- owner trust and image allowlisting answer different
+      questions.
 
   - name: approved_ami_naming_pattern
     type: string
     value: ''
     description: >-
       Regex pattern that approved AMIs' `name` field must match (CIS
-      §2.1.1 — Consistent Naming Convention). Empty (default) skips
-      the naming-convention check. Example:
+      §2.1.1 — Consistent Naming Convention). Empty (default) FAILS the
+      control rather than skipping it: CIS 2.1.1 requires a declared
+      convention, and no convention is not a passing state. Example:
       `^myorg-(ubuntu|amzn2|al2023)-\\d{4}-\\d{2}-\\d{2}$`.
 
   # tag_policy_attestation_reference removed — CIS 2.3 now enforces
