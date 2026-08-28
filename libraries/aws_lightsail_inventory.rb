@@ -16,6 +16,8 @@
 class AwsLightsailInventory < AwsResourceBase
   name "aws_lightsail_inventory"
   desc "Lightsail instances + ports + buckets (CIS §5.3-§5.10)."
+
+  include RegionScope
   example "
     inv = aws_lightsail_inventory(allowed_ssh_cidrs: input('lightsail_allowed_ssh_cidrs'))
     if inv.connection_error
@@ -98,6 +100,7 @@ class AwsLightsailInventory < AwsResourceBase
     walk_instances(client, region)
     walk_buckets(client, region)
   rescue ::Aws::Errors::ServiceError => e
+    (@region_errors ||= {})[region] = "aws_lightsail_inventory: #{region} fetch failed: #{e.message}"
     Inspec::Log.warn("aws_lightsail_inventory: #{region} fetch failed: #{e.message}")
   end
 
@@ -108,6 +111,7 @@ class AwsLightsailInventory < AwsResourceBase
         begin
           client.get_instances(page_token: page_token)
         rescue ::Aws::Errors::ServiceError => e
+          (@region_errors ||= {})[region] = "aws_lightsail_inventory: #{region} get_instances failed: #{e.message}"
           Inspec::Log.warn("aws_lightsail_inventory: #{region} get_instances failed: #{e.message}")
           return
         end
@@ -166,6 +170,7 @@ class AwsLightsailInventory < AwsResourceBase
         begin
           client.get_buckets(page_token: page_token, include_connected_resources: true)
         rescue ::Aws::Errors::ServiceError => e
+          (@region_errors ||= {})[region] = "aws_lightsail_inventory: #{region} get_buckets failed: #{e.message}"
           Inspec::Log.warn("aws_lightsail_inventory: #{region} get_buckets failed: #{e.message}")
           return
         end
@@ -191,5 +196,20 @@ class AwsLightsailInventory < AwsResourceBase
     if rules && rules.get_object.to_s == "private" && Array(bucket.readonly_access_accounts).empty? && bucket.respond_to?(:tags) && Array(bucket.tags).none? { |t| t.key == "lightsail-iam-managed" }
       @buckets_with_iam_managed_access << record
     end
+  end
+
+  # Regions that could not be read, keyed by region. A region that errors
+  # contributes no rows, so without this an inaccessible region is
+  # indistinguishable from an empty one and the control passes.
+  def region_errors
+    @region_errors ||= {}
+  end
+
+  # Falls back to whatever the resource already recorded (a missing SDK gem, a
+  # failed bootstrap) and only then to region failures, so neither hides the
+  # other. A `def` here overrides any attr_reader of the same name, which is how
+  # the first attempt at this silently dropped the gem-missing message.
+  def connection_error
+    @connection_error || region_error_summary(region_errors, Array(@regions).size)
   end
 end

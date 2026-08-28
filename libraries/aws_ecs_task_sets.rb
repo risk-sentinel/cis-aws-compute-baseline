@@ -14,6 +14,8 @@
 class AwsEcsTaskSets < AwsResourceBase
   name "aws_ecs_task_sets"
   desc "ECS task sets with assignPublicIp != DISABLED (CIS 3.14)."
+
+  include RegionScope
   example "
     describe aws_ecs_task_sets do
       its('task_sets_with_public_ip') { should be_empty }
@@ -73,6 +75,7 @@ class AwsEcsTaskSets < AwsResourceBase
         begin
           client.list_clusters(next_token: next_token)
         rescue ::Aws::Errors::ServiceError => e
+          (@region_errors ||= {})[region] = "aws_ecs_task_sets: #{region} list_clusters failed: #{e.message}"
           Inspec::Log.warn("aws_ecs_task_sets: #{region} list_clusters failed: #{e.message}")
           return arns
         end
@@ -91,6 +94,7 @@ class AwsEcsTaskSets < AwsResourceBase
         begin
           client.list_services(cluster: cluster_arn, next_token: next_token)
         rescue ::Aws::Errors::ServiceError => e
+          (@region_errors ||= {})[region] = "aws_ecs_task_sets: #{region} list_services(#{cluster_arn}) failed: #{e.message}"
           Inspec::Log.warn("aws_ecs_task_sets: #{region} list_services(#{cluster_arn}) failed: #{e.message}")
           return arns
         end
@@ -106,6 +110,7 @@ class AwsEcsTaskSets < AwsResourceBase
       begin
         client.describe_services(cluster: cluster_arn, services: service_arns)
       rescue ::Aws::Errors::ServiceError => e
+        (@region_errors ||= {})[region] = "aws_ecs_task_sets: #{region} describe_services failed: #{e.message}"
         Inspec::Log.warn("aws_ecs_task_sets: #{region} describe_services failed: #{e.message}")
         return
       end
@@ -125,5 +130,20 @@ class AwsEcsTaskSets < AwsResourceBase
         }
       end
     end
+  end
+
+  # Regions that could not be read, keyed by region. A region that errors
+  # contributes no rows, so without this an inaccessible region is
+  # indistinguishable from an empty one and the control passes.
+  def region_errors
+    @region_errors ||= {}
+  end
+
+  # Falls back to whatever the resource already recorded (a missing SDK gem, a
+  # failed bootstrap) and only then to region failures, so neither hides the
+  # other. A `def` here overrides any attr_reader of the same name, which is how
+  # the first attempt at this silently dropped the gem-missing message.
+  def connection_error
+    @connection_error || region_error_summary(region_errors, Array(@regions).size)
   end
 end

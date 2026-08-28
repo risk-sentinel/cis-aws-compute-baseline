@@ -21,6 +21,8 @@ require "set"
 class AwsLambdaCompliance < AwsResourceBase
   name "aws_lambda_compliance"
   desc "Lambda compliance accessors (CIS §12.4 / §12.9 / §12.10 / §12.11)."
+
+  include RegionScope
   example "
     inv = aws_lambda_compliance(runtime_allowlist: input('lambda_runtime_allowlist'))
     describe inv do
@@ -93,6 +95,7 @@ class AwsLambdaCompliance < AwsResourceBase
         begin
           lambda_client.list_functions(marker: next_marker)
         rescue ::Aws::Errors::ServiceError => e
+          (@region_errors ||= {})[region] = "aws_lambda_compliance: #{region} list_functions failed: #{e.message}"
           Inspec::Log.warn("aws_lambda_compliance: #{region} list_functions failed: #{e.message}")
           return
         end
@@ -182,5 +185,20 @@ class AwsLambdaCompliance < AwsResourceBase
     return if @runtime_allowlist.empty?
     return if @runtime_allowlist.include?(record[:runtime].to_s)
     @functions_with_eol_runtime << record
+  end
+
+  # Regions that could not be read, keyed by region. A region that errors
+  # contributes no rows, so without this an inaccessible region is
+  # indistinguishable from an empty one and the control passes.
+  def region_errors
+    @region_errors ||= {}
+  end
+
+  # Falls back to whatever the resource already recorded (a missing SDK gem, a
+  # failed bootstrap) and only then to region failures, so neither hides the
+  # other. A `def` here overrides any attr_reader of the same name, which is how
+  # the first attempt at this silently dropped the gem-missing message.
+  def connection_error
+    @connection_error || region_error_summary(region_errors, Array(@regions).size)
   end
 end

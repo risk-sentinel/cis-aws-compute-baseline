@@ -22,6 +22,8 @@
 class AwsEc2LongStoppedInstances < AwsResourceBase
   name "aws_ec2_long_stopped_instances"
   desc "EC2 instances stopped longer than N days (CIS 2.11)."
+
+  include RegionScope
   example "
     inv = aws_ec2_long_stopped_instances(threshold_days: 90)
     describe inv do
@@ -81,6 +83,7 @@ class AwsEc2LongStoppedInstances < AwsResourceBase
             next_token: next_token,
           )
         rescue ::Aws::Errors::ServiceError => e
+          (@region_errors ||= {})[region] = "aws_ec2_long_stopped_instances: #{region} describe_instances failed: #{e.message}"
           Inspec::Log.warn("aws_ec2_long_stopped_instances: #{region} describe_instances failed: #{e.message}")
           return
         end
@@ -113,5 +116,20 @@ class AwsEc2LongStoppedInstances < AwsResourceBase
       stopped_at:  stopped_at.iso8601,
       days:        ((Time.now - stopped_at) / 86_400).to_i,
     }
+  end
+
+  # Regions that could not be read, keyed by region. A region that errors
+  # contributes no rows, so without this an inaccessible region is
+  # indistinguishable from an empty one and the control passes.
+  def region_errors
+    @region_errors ||= {}
+  end
+
+  # Falls back to whatever the resource already recorded (a missing SDK gem, a
+  # failed bootstrap) and only then to region failures, so neither hides the
+  # other. A `def` here overrides any attr_reader of the same name, which is how
+  # the first attempt at this silently dropped the gem-missing message.
+  def connection_error
+    @connection_error || region_error_summary(region_errors, Array(@regions).size)
   end
 end

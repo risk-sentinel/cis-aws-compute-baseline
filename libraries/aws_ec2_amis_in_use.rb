@@ -47,6 +47,8 @@ class AwsEc2AmisInUse < AwsResourceBase
     region_override  = Array(opts.delete(:regions))
     @trusted_owners  = Array(opts.delete(:trusted_owners)).map(&:to_s)
     @naming_pattern  = opts.delete(:naming_pattern).to_s
+    @name_patterns   = Array(opts.delete(:approved_name_patterns)).map(&:to_s)
+    @approved_ids    = Array(opts.delete(:approved_ids)).map(&:to_s)
     super(opts)
     validate_parameters
     @regions, scope_error = resolve_region_scope(@aws, region_override)
@@ -97,6 +99,36 @@ class AwsEc2AmisInUse < AwsResourceBase
     @amis.reject { |a| allow.include?(a[:image_id]) }.map { |a| describe_ami(a) }
   end
 
+  # An AMI is approved if ANY declared vector matches: an explicit id, a name
+  # pattern, or a trusted owner account. Three vectors rather than one because a
+  # hand-maintained id list goes stale the moment the bake pipeline runs again --
+  # `*_GOLD_*` and the bake account keep matching without anyone editing a list.
+  #
+  # Anything matching none of them is the finding.
+  def unapproved_amis
+    @amis.reject { |a| a[:missing] }.reject { |a| approved?(a) }.map { |a| describe_ami(a) }
+  end
+
+  # Which vectors the operator has actually declared. Controls use this to tell
+  # "policy says these are fine" apart from "no policy has been expressed", so
+  # an unconfigured profile fails loudly instead of passing everything.
+  def approval_vectors
+    v = []
+    v << "ids(#{@approved_ids.size})"        unless @approved_ids.empty?
+    v << "name_patterns(#{@name_patterns.join(', ')})" unless @name_patterns.empty?
+    v << "owners(#{@trusted_owners.join(', ')})"       unless @trusted_owners.empty?
+    v
+  end
+
+  # Distinct name patterns that would cover everything currently running, offered
+  # so an operator can derive policy from the estate rather than invent it.
+  def suggested_name_patterns
+    @amis.reject { |a| a[:missing] || a[:name].to_s.empty? }
+         .map { |a| a[:name].to_s }
+         .uniq
+         .sort
+  end
+
   # Every distinct AMI in use, formatted for an operator populating an
   # allowlist. This is the half that makes the declared-catalogue controls
   # actionable instead of merely failing.
@@ -113,6 +145,31 @@ class AwsEc2AmisInUse < AwsResourceBase
   def trusted_owner?(owner_id)
     return true if owner_id.to_s == account_id.to_s
     @trusted_owners.include?(owner_id.to_s)
+  end
+
+  def approved?(a)
+    return true if @approved_ids.include?(a[:image_id].to_s)
+    return true if name_matches_any?(a[:name].to_s)
+    return true if !@trusted_owners.empty? && @trusted_owners.include?(a[:owner_id].to_s)
+    false
+  end
+
+  # Patterns are globs -- `*_GOLD_*` reads the way an operator expects and does
+  # not require escaping. A `re:` prefix switches to a full regex for the cases a
+  # glob cannot express.
+  def name_matches_any?(name)
+    return false if name.empty?
+    @name_patterns.any? do |pat|
+      if pat.start_with?('re:')
+        begin
+          Regexp.new(pat.sub(/\Are:/, '')).match?(name)
+        rescue RegexpError
+          false
+        end
+      else
+        ::File.fnmatch?(pat, name, ::File::FNM_CASEFOLD)
+      end
+    end
   end
 
   def account_id

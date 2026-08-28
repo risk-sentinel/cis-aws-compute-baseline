@@ -66,6 +66,20 @@ module RegionScope
     [rows, errors]
   end
 
+  # Route a single-target lookup to the right region.
+  #
+  # An ARN carries its own region, so an identifier that is one answers the
+  # question by itself. Otherwise an explicit `region:` wins, and failing both we
+  # fall back to the default client's region -- which is correct when the caller
+  # passed a bare name, since a bare name is only meaningful in one region
+  # anyway.
+  def client_region_for(identifier, explicit = nil)
+    return explicit.to_s unless explicit.to_s.empty?
+    parts = identifier.to_s.split(':')
+    return parts[3] if parts.length > 3 && parts[0] == 'arn' && !parts[3].to_s.empty?
+    nil
+  end
+
   # Render region failures as a connection_error string, or nil when every region
   # answered. Kept separate so a resource can decide whether partial data is
   # usable, but the default is that it is not.
