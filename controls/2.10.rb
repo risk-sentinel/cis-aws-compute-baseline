@@ -71,6 +71,7 @@ control 'C-2.10' do
     NOTE Repeat the audit process for all other regions used.
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['CP-2 a 1', 'SA-8']
   tag cci:                   ['CCI-000443', 'CCI-000664']
   tag cis_number:            '2.10'

@@ -65,6 +65,7 @@ control 'C-10.2' do
     10. Repeat steps 3-8 for each environment within the current region that needs Managed updates set.
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['AC-2 f', 'AU-2 a']
   tag cci:                   ['CCI-000011', 'CCI-000123']
   tag cis_number:            '10.2'

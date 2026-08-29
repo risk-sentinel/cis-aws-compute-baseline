@@ -60,6 +60,7 @@ control 'C-3.10' do
     1. Repeat steps 1-9 for each ECS cluster and service requiring remediation.
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['CM-8 a 1']
   tag cci:                   ['CCI-000389']
   tag cis_number:            '3.10'

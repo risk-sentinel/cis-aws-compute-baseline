@@ -72,6 +72,7 @@ control 'C-2.2.4' do
     Note: EBS volumes can be in different regions.  Make sure to review all the regions being utilized.
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['CM-8 a 1']
   tag cci:                   ['CCI-000389']
   tag cis_number:            '2.2.4'

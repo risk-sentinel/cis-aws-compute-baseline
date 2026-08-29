@@ -70,6 +70,7 @@ control 'C-12.5' do
     10. Repeat this remediation process for all the AWS Regions.
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['AC-3', 'AU-4']
   tag cci:                   ['CCI-000213', 'CCI-001848']
   tag cis_number:            '12.5'

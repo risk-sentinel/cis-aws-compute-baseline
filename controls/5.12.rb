@@ -58,6 +58,7 @@ control 'C-5.12' do
     11.  Click `Save`
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['AC-18 a']
   tag cci:                   ['CCI-002323']
   tag cis_number:            '5.12'

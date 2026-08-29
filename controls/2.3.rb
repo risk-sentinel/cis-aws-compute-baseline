@@ -57,6 +57,7 @@ control 'C-2.3' do
     The list of PolicyTypes in the output will now include the specified policy type with the Status of ENABLED.
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['CM-8 a 1', 'SI-4 a 1']
   tag cci:                   ['CCI-000389', 'CCI-002641']
   tag cis_number:            '2.3'

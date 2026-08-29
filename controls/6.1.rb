@@ -71,6 +71,7 @@ control 'C-6.1' do
     10. Click `Create endpoint`.
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['SC-28', 'IA-5 (1) (e)', 'SI-3 a']
   tag cci:                   ['CCI-001199', 'CCI-000200', 'CCI-002619']
   tag cis_number:            '6.1'

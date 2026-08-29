@@ -104,6 +104,7 @@ control 'C-12.7' do
     9. Repeat this Audit for all the other AWS regions.
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['AC-3', 'AC-8 a']
   tag cci:                   ['CCI-000213', 'CCI-000051']
   tag cis_number:            '12.7'

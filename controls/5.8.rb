@@ -119,6 +119,7 @@ control 'C-5.8' do
     Repeat and create all the S3 buckets that you need for Lightsail.
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['AC-3', 'SC-28', 'AC-11 b']
   tag cci:                   ['CCI-000213', 'CCI-001199', 'CCI-000056']
   tag cis_number:            '5.8'

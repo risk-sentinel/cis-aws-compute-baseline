@@ -67,6 +67,7 @@ control 'C-2.2.1' do
     Note: EBS volume encryption is configured per region.
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['SC-28', 'AC-8 a']
   tag cci:                   ['CCI-001199', 'CCI-000051']
   tag cis_number:            '2.2.1'

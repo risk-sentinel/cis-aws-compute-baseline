@@ -80,6 +80,7 @@ control 'C-12.9' do
     8. Repeat steps for each Lambda function within the current region that failed the Audit.
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['AC-2 c']
   tag cci:                   ['CCI-002113']
   tag cis_number:            '12.9'

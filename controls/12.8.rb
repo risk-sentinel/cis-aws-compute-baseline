@@ -128,6 +128,7 @@ control 'C-12.8' do
     24. Repeat steps for each Lambda function that was captured in the Audit.
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['SI-7 a', 'AC-2 f', 'AU-2 a', 'SI-3 b']
   tag cci:                   ['CCI-002704', 'CCI-000011', 'CCI-000123', 'CCI-001240']
   tag cis_number:            '12.8'

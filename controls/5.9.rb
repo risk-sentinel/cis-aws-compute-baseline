@@ -89,6 +89,7 @@ control 'C-5.9' do
     3. Repeat for any other buckets listed in the audit.
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['AC-3', 'AC-8 a']
   tag cci:                   ['CCI-000213', 'CCI-000051']
   tag cis_number:            '5.9'

@@ -60,6 +60,7 @@ control 'C-3.13' do
     Note: When a task definition is updated, running tasks launched from the previous task definition remain unchanged. Updating a running task requires redeploying it with the new task definition.
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['MA-3 a']
   tag cci:                   ['CCI-000865']
   tag cis_number:            '3.13'

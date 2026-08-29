@@ -104,6 +104,7 @@ control 'C-12.6' do
     4. Repeat steps 1-2 for each Lambda function from the audit for all regions.
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['CM-8 a 1', 'CM-7 a']
   tag cci:                   ['CCI-000389', 'CCI-000381']
   tag cis_number:            '12.6'

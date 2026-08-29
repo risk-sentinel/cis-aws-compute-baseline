@@ -122,6 +122,7 @@ control 'C-5.5' do
     3. Repeat the remediation below for all other Windows instances identified in the Audit.
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['AC-3', 'AC-8 a']
   tag cci:                   ['CCI-000213', 'CCI-000051']
   tag cis_number:            '5.5'

@@ -104,6 +104,7 @@ control 'C-12.11' do
     4. Repeat steps 1-2 to upgrade the runtime environment for each Amazon Lambda function found in the Audit.
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['MP-6 a', 'SI-2 a']
   tag cci:                   ['CCI-001028', 'CCI-001225']
   tag cis_number:            '12.11'

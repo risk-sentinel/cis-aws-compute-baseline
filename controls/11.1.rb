@@ -52,6 +52,7 @@ control 'C-11.1' do
     1. Repeat steps 1-7 for each ECS cluster requiring remediation.
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['SC-28', 'AC-8 a']
   tag cci:                   ['CCI-001199', 'CCI-000051']
   tag cis_number:            '11.1'

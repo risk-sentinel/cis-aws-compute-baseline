@@ -67,6 +67,7 @@ control 'C-10.1' do
     11. Then repeat the remediation process for all other regions identified in the Audit.
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['MP-6 a', 'SI-2 a']
   tag cci:                   ['CCI-001028', 'CCI-001225']
   tag cis_number:            '10.1'

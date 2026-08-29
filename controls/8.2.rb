@@ -85,6 +85,7 @@ control 'C-8.2' do
     5. Repeat for any roles defined in the Audit.
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['AC-2 c']
   tag cci:                   ['CCI-002113']
   tag cis_number:            '8.2'

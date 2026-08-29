@@ -75,6 +75,7 @@ control 'C-12.2' do
     10. Then repeat the Audit process for all other regions.
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['AC-2 f', 'AU-2 a']
   tag cci:                   ['CCI-000011', 'CCI-000123']
   tag cis_number:            '12.2'

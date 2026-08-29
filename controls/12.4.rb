@@ -26,6 +26,7 @@ control 'C-12.4' do
     - Do not allow all-access permissions for Lambda functions as a short cut.\"
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['AC-3', 'AC-2 (2)']
   tag cci:                   ['CCI-000213', 'CCI-001682']
   tag cis_number:            '12.4'
