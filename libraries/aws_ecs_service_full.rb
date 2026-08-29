@@ -12,6 +12,8 @@ class AwsEcsServiceFull < AwsResourceBase
   name "aws_ecs_service_full"
   desc "ECS service with tags and network-config fields exposed."
 
+  include RegionScope
+
   example "
     describe aws_ecs_service_full(cluster: 'prod-sparc', service: 'api') do
       its('platform_version') { should eq 'LATEST' }
@@ -25,11 +27,11 @@ class AwsEcsServiceFull < AwsResourceBase
 
   def initialize(opts = {})
     super(opts)
-    validate_parameters(required: %i[cluster service])
+    validate_parameters(required: %i[cluster service], allow: [:region])
     @display_name = opts[:service]
 
     catch_aws_errors do
-      resp = @aws.ecs_client.describe_services(
+      resp = ecs_client_for(opts).describe_services(
         cluster:  opts[:cluster],
         services: [opts[:service]],
         include:  ["TAGS"],
@@ -65,5 +67,16 @@ class AwsEcsServiceFull < AwsResourceBase
 
   def to_s
     "AWS ECS service (full) #{@display_name}"
+  end
+  private
+
+  # ECS identifiers are ARNs in every path this profile uses, and an ARN names
+  # its region. Without this the client stayed pinned to aws_region, so a
+  # cluster in another region simply came back not-found -- indistinguishable
+  # from one that does not exist.
+  def ecs_client_for(opts)
+    region = client_region_for(opts[:service], opts[:region])
+    return @aws.ecs_client if region.nil? || region.empty?
+    (@clients ||= {})[region] ||= ::Aws::ECS::Client.new(region: region)
   end
 end

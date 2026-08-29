@@ -13,6 +13,8 @@
 class AwsSimSpaceWeaverInventory < AwsResourceBase
   name "aws_simspaceweaver_inventory"
   desc "SimSpace Weaver simulations + TLS state (CIS 16.1)."
+
+  include RegionScope
   example "
     inv = aws_simspaceweaver_inventory
     if inv.connection_error
@@ -74,6 +76,7 @@ class AwsSimSpaceWeaverInventory < AwsResourceBase
         begin
           client.list_simulations(next_token: next_token)
         rescue ::Aws::Errors::ServiceError => e
+          (@region_errors ||= {})[region] = "aws_simspaceweaver_inventory: #{region} list_simulations failed: #{e.message}"
           Inspec::Log.warn("aws_simspaceweaver_inventory: #{region} list_simulations failed: #{e.message}")
           return
         end
@@ -103,5 +106,12 @@ class AwsSimSpaceWeaverInventory < AwsResourceBase
     # is RUNNING (TLS enforced by service default). Operators relying on
     # custom transports must attest separately.
     @simulations_without_tls << record unless detail.status.to_s == "RUNNING"
+  end
+
+  # Regions that could not be read, keyed by region. A region that errors
+  # contributes no rows, so without this an inaccessible region is
+  # indistinguishable from an empty one and the control passes.
+  def region_errors
+    @region_errors ||= {}
   end
 end

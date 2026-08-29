@@ -46,7 +46,7 @@ control 'C-16.1' do
     applicable
   end
 
-  inv = aws_simspaceweaver_inventory(regions: input('scan_regions'))
+  inv = aws_simspaceweaver_inventory(regions: compute_scan_regions)
   if inv.connection_error
     describe 'AWS SimSpace Weaver inventory' do
       skip "Requires manual review and attestation provided for this control (#{inv.connection_error})"

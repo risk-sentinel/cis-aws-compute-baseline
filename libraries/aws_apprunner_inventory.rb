@@ -18,6 +18,8 @@
 class AwsAppRunnerInventory < AwsResourceBase
   name "aws_apprunner_inventory"
   desc "App Runner services + VPC connector source-code coverage (CIS 6.1)."
+
+  include RegionScope
   example "
     inv = aws_apprunner_inventory
     if inv.connection_error
@@ -79,6 +81,7 @@ class AwsAppRunnerInventory < AwsResourceBase
         begin
           client.list_services(next_token: next_token)
         rescue ::Aws::Errors::ServiceError => e
+          (@region_errors ||= {})[region] = "aws_apprunner_inventory: #{region} list_services failed: #{e.message}"
           Inspec::Log.warn("aws_apprunner_inventory: #{region} list_services failed: #{e.message}")
           return
         end
@@ -105,5 +108,12 @@ class AwsAppRunnerInventory < AwsResourceBase
     egress_type = network_cfg&.egress_configuration&.egress_type
     return if egress_type.to_s == "VPC"
     @services_without_vpc_connector << record
+  end
+
+  # Regions that could not be read, keyed by region. A region that errors
+  # contributes no rows, so without this an inaccessible region is
+  # indistinguishable from an empty one and the control passes.
+  def region_errors
+    @region_errors ||= {}
   end
 end

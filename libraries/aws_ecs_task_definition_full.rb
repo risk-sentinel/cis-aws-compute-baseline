@@ -14,6 +14,8 @@ class AwsEcsTaskDefinitionFull < AwsResourceBase
   name "aws_ecs_task_definition_full"
   desc "ECS task definition with tags + container-definition convenience methods."
 
+  include RegionScope
+
   example "
     describe aws_ecs_task_definition_full(task_definition: 'sparc-api:42') do
       its('pid_mode')                 { should_not eq 'host' }
@@ -29,11 +31,11 @@ class AwsEcsTaskDefinitionFull < AwsResourceBase
   def initialize(opts = {})
     opts = { task_definition: opts } if opts.is_a?(String)
     super(opts)
-    validate_parameters(required: [:task_definition])
+    validate_parameters(required: [:task_definition], allow: [:region])
     @display_name = opts[:task_definition]
 
     catch_aws_errors do
-      resp = @aws.ecs_client.describe_task_definition(
+      resp = ecs_client_for(opts).describe_task_definition(
         task_definition: opts[:task_definition],
         include:         ["TAGS"],
       )
@@ -112,5 +114,16 @@ class AwsEcsTaskDefinitionFull < AwsResourceBase
 
   def to_s
     "AWS ECS task definition (full) #{@display_name}"
+  end
+  private
+
+  # ECS identifiers are ARNs in every path this profile uses, and an ARN names
+  # its region. Without this the client stayed pinned to aws_region, so a
+  # cluster in another region simply came back not-found -- indistinguishable
+  # from one that does not exist.
+  def ecs_client_for(opts)
+    region = client_region_for(opts[:task_definition], opts[:region])
+    return @aws.ecs_client if region.nil? || region.empty?
+    (@clients ||= {})[region] ||= ::Aws::ECS::Client.new(region: region)
   end
 end

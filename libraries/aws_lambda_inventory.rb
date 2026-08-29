@@ -28,28 +28,41 @@ class AwsLambdaInventory < AwsResourceBase
 
   attr_reader :functions
 
+  include RegionScope
+
+  attr_reader :regions, :region_errors, :connection_error
+
   def initialize(opts = {})
+    opts = opts.dup
+    region_override = Array(opts.delete(:regions))
     super(opts)
     validate_parameters
-    @functions = fetch_functions
+    @regions, scope_error = resolve_region_scope(@aws, region_override)
+    @functions, @region_errors = fetch_functions
+    @connection_error = scope_error || region_error_summary(@region_errors, @regions.size)
+  end
+
+  # Per-function calls below must reach the region the function lives in, so
+  # each row carries its region and the client is selected from it.
+  def lambda_for(region)
+    (@clients ||= {})[region] ||= ::Aws::Lambda::Client.new(region: region)
   end
 
   def fetch_functions
-    fns = []
-    marker = nil
-    loop do
-      resp = nil
-      catch_aws_errors do
+    each_region_collecting(@regions) do |region|
+      client = lambda_for(region)
+      fns = []
+      marker = nil
+      loop do
         args = {}
         args[:marker] = marker if marker
-        resp = @aws.lambda_client.list_functions(args)
+        resp = client.list_functions(args)
+        fns.concat(resp.functions.map { |f| f.to_h.merge(region: region) })
+        marker = resp.next_marker
+        break unless marker
       end
-      break unless resp
-      fns.concat(resp.functions.map(&:to_h))
-      marker = resp.next_marker
-      break unless marker
+      fns
     end
-    fns
   end
 
   def function_names
@@ -109,7 +122,7 @@ class AwsLambdaInventory < AwsResourceBase
     @functions.each_with_object([]) do |f, acc|
       policy_str = nil
       catch_aws_errors do
-        resp = @aws.lambda_client.get_policy(function_name: f[:function_name])
+        resp = lambda_for(f[:region]).get_policy(function_name: f[:function_name])
         policy_str = resp.policy
       end
       next unless policy_str
@@ -136,7 +149,7 @@ class AwsLambdaInventory < AwsResourceBase
     @functions.reject do |f|
       arn = nil
       catch_aws_errors do
-        resp = @aws.lambda_client.get_function_code_signing_config(function_name: f[:function_name])
+        resp = lambda_for(f[:region]).get_function_code_signing_config(function_name: f[:function_name])
         arn = resp.code_signing_config_arn
       end
       !arn.to_s.empty?

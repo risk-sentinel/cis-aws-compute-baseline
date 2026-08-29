@@ -20,6 +20,8 @@
 class AwsElasticBeanstalkEnvironments < AwsResourceBase
   name "aws_elastic_beanstalk_environments"
   desc "Elastic Beanstalk environments + configuration violations (CIS §10)."
+
+  include RegionScope
   example "
     describe aws_elastic_beanstalk_environments do
       its('environments_without_managed_updates') { should be_empty }
@@ -86,6 +88,7 @@ class AwsElasticBeanstalkEnvironments < AwsResourceBase
         begin
           client.describe_environments(next_token: next_token)
         rescue ::Aws::Errors::ServiceError => e
+          (@region_errors ||= {})[region] = "aws_elastic_beanstalk_environments: #{region} describe_environments failed: #{e.message}"
           Inspec::Log.warn("aws_elastic_beanstalk_environments: #{region} describe_environments failed: #{e.message}")
           return rows
         end
@@ -145,5 +148,20 @@ class AwsElasticBeanstalkEnvironments < AwsResourceBase
     protocol = option_value(options, "aws:elbv2:listener:443", "Protocol") ||
                option_value(options, "aws:elb:listener:443", "InstanceProtocol")
     protocol.to_s.casecmp("https").zero?
+  end
+
+  # Regions that could not be read, keyed by region. A region that errors
+  # contributes no rows, so without this an inaccessible region is
+  # indistinguishable from an empty one and the control passes.
+  def region_errors
+    @region_errors ||= {}
+  end
+
+  # Falls back to whatever the resource already recorded (a missing SDK gem, a
+  # failed bootstrap) and only then to region failures, so neither hides the
+  # other. A `def` here overrides any attr_reader of the same name, which is how
+  # the first attempt at this silently dropped the gem-missing message.
+  def connection_error
+    @connection_error || region_error_summary(region_errors, Array(@regions).size)
   end
 end

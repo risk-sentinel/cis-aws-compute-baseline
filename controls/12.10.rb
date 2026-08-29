@@ -110,7 +110,7 @@ control 'C-12.10' do
     applicable
   end
 
-  describe aws_lambda_compliance(regions: input('scan_regions')) do
+  describe aws_lambda_compliance(regions: compute_scan_regions) do
     its('functions_with_cross_account_principals') { should be_empty }
   end
 end

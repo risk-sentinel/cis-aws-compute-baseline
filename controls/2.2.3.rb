@@ -139,7 +139,7 @@ control 'C-2.2.3' do
   end
 
   describe 'EBS snapshots with encryption disabled' do
-    subject { aws_ebs_snapshots_multi_region(regions: input('scan_regions')).where(encrypted: false).snapshot_ids }
+    subject { aws_ebs_snapshots_multi_region(regions: compute_scan_regions).where(encrypted: false).snapshot_ids }
     it { should be_empty }
   end
 end

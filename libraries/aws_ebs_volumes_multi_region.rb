@@ -13,6 +13,8 @@
 class AwsEbsVolumesMultiRegion < AwsResourceBase
   name "aws_ebs_volumes_multi_region"
   desc "Multi-region EBS volume inventory (CIS 2.2.1 / 2.2.4)."
+
+  include RegionScope
   example "
     describe aws_ebs_volumes_multi_region(regions: input('scan_regions')) do
       its('where { encrypted == false }.volume_ids') { should be_empty }
@@ -67,6 +69,7 @@ class AwsEbsVolumesMultiRegion < AwsResourceBase
           begin
             client.describe_volumes(next_token: next_token)
           rescue ::Aws::Errors::ServiceError => e
+            (@region_errors ||= {})[region] = "aws_ebs_volumes_multi_region: #{region} describe_volumes failed: #{e.message}"
             Inspec::Log.warn("aws_ebs_volumes_multi_region: #{region} describe_volumes failed: #{e.message}")
             break
           end
@@ -85,5 +88,20 @@ class AwsEbsVolumesMultiRegion < AwsResourceBase
       end
     end
     rows
+  end
+
+  # Regions that could not be read, keyed by region. A region that errors
+  # contributes no rows, so without this an inaccessible region is
+  # indistinguishable from an empty one and the control passes.
+  def region_errors
+    @region_errors ||= {}
+  end
+
+  # Falls back to whatever the resource already recorded (a missing SDK gem, a
+  # failed bootstrap) and only then to region failures, so neither hides the
+  # other. A `def` here overrides any attr_reader of the same name, which is how
+  # the first attempt at this silently dropped the gem-missing message.
+  def connection_error
+    @connection_error || region_error_summary(region_errors, Array(@regions).size)
   end
 end

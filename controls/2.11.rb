@@ -77,7 +77,7 @@ control 'C-2.11' do
   end
 
   describe aws_ec2_long_stopped_instances(
-    regions:        input('scan_regions'),
+    regions:        compute_scan_regions,
     threshold_days: input('stopped_instance_max_age_days'),
   ) do
     its('long_stopped_instances') { should be_empty }

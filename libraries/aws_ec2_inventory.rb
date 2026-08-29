@@ -28,30 +28,44 @@ class AwsEc2Inventory < AwsResourceBase
 
   attr_reader :instances
 
+  include RegionScope
+
+  attr_reader :regions, :region_errors, :connection_error
+
   def initialize(opts = {})
+    opts = opts.dup
+    region_override = Array(opts.delete(:regions))
     super(opts)
     validate_parameters
-    @instances = fetch_instances
+    @regions, scope_error = resolve_region_scope(@aws, region_override)
+    @instances, @region_errors = fetch_instances
+    @connection_error = scope_error || region_error_summary(@region_errors, @regions.size)
   end
 
+  def to_s
+    "EC2 inventory (regions: #{@regions.join(', ')})"
+  end
+
+  # Walks every in-scope region. A region that cannot be read contributes no
+  # rows AND an entry in region_errors, which becomes connection_error -- so an
+  # unreadable region reports as unassessed rather than as an empty, clean one.
   def fetch_instances
-    rows = []
-    token = nil
-    loop do
-      resp = nil
-      catch_aws_errors do
+    each_region_collecting(@regions) do |region|
+      client = ::Aws::EC2::Client.new(region: region)
+      rows = []
+      token = nil
+      loop do
         args = { filters: [{ name: "instance-state-name", values: %w[running stopped pending stopping] }] }
         args[:next_token] = token if token
-        resp = @aws.compute_client.describe_instances(args)
+        resp = client.describe_instances(args)
+        resp.reservations.each do |r|
+          r.instances.each { |i| rows << i.to_h.merge(region: region) }
+        end
+        token = resp.next_token
+        break unless token
       end
-      break unless resp
-      resp.reservations.each do |r|
-        r.instances.each { |i| rows << i.to_h }
-      end
-      token = resp.next_token
-      break unless token
+      rows
     end
-    rows
   end
 
   def instances_older_than(days)

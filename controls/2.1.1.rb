@@ -105,8 +105,7 @@ control 'C-2.1.1' do
     # Empty input is a CONFIGURATION FAILURE, not an attestation slot.
     # CIS 2.1.1 requires the consumer to declare a naming convention;
     # without one, the control cannot evaluate compliance and must
-    # not pass silently. Populate `approved_ami_naming_pattern` with
-    # a regex matching the organizational AMI naming scheme.
+    # not pass silently.
     describe 'approved_ami_naming_pattern input' do
       it 'must be populated for CIS 2.1.1 to evaluate' do
         expect(pattern).not_to be_empty,
@@ -114,11 +113,19 @@ control 'C-2.1.1' do
       end
     end
   else
-    re = Regexp.new(pattern)
-    aws_amis.where { state == "available" }.entries.each do |ami|
-      describe "AMI #{ami.image_id} naming" do
-        subject { ami.name.to_s }
-        it { should match(re) }
+    # Evaluated against the AMIs actually in use, discovered from the instances,
+    # rather than against a declared catalogue. An image that never appears in
+    # the catalogue but is running right now is exactly the one the naming
+    # convention exists to surface.
+    amis = aws_ec2_amis_in_use(regions: compute_scan_regions, naming_pattern: pattern)
+    if amis.connection_error
+      describe 'AMI naming convention' do
+        skip "AMIs in use could not be enumerated: #{amis.connection_error}"
+      end
+    else
+      describe "AMIs in use whose name does not match #{pattern}" do
+        subject { amis.amis_not_matching_pattern }
+        it { should be_empty }
       end
     end
   end

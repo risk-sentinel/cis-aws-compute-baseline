@@ -12,6 +12,8 @@ class AwsEcsClusterFull < AwsResourceBase
   name "aws_ecs_cluster_full"
   desc "ECS cluster with configuration, settings, and tags included."
 
+  include RegionScope
+
   example "
     describe aws_ecs_cluster_full(cluster: 'prod-sparc') do
       its('container_insights') { should eq 'enabled' }
@@ -26,11 +28,11 @@ class AwsEcsClusterFull < AwsResourceBase
   def initialize(opts = {})
     opts = { cluster: opts } if opts.is_a?(String)
     super(opts)
-    validate_parameters(required: [:cluster])
+    validate_parameters(required: [:cluster], allow: [:region])
     @display_name = opts[:cluster]
 
     catch_aws_errors do
-      resp = @aws.ecs_client.describe_clusters(
+      resp = ecs_client_for(opts).describe_clusters(
         clusters: [opts[:cluster]],
         include:  %w[CONFIGURATIONS SETTINGS TAGS],
       )
@@ -70,5 +72,16 @@ class AwsEcsClusterFull < AwsResourceBase
 
   def to_s
     "AWS ECS cluster (full) #{@display_name}"
+  end
+  private
+
+  # ECS identifiers are ARNs in every path this profile uses, and an ARN names
+  # its region. Without this the client stayed pinned to aws_region, so a
+  # cluster in another region simply came back not-found -- indistinguishable
+  # from one that does not exist.
+  def ecs_client_for(opts)
+    region = client_region_for(opts[:cluster], opts[:region])
+    return @aws.ecs_client if region.nil? || region.empty?
+    (@clients ||= {})[region] ||= ::Aws::ECS::Client.new(region: region)
   end
 end

@@ -25,47 +25,63 @@ class AwsEcsInventory < AwsResourceBase
     end
   "
 
-  attr_reader :cluster_arns
+  include RegionScope
+
+  attr_reader :cluster_arns, :regions, :region_errors, :connection_error
 
   def initialize(opts = {})
+    opts = opts.dup
+    region_override = Array(opts.delete(:regions))
     super(opts)
     validate_parameters
-    @cluster_arns = fetch_cluster_arns
+    @regions, scope_error = resolve_region_scope(@aws, region_override)
+    @cluster_arns, @region_errors = fetch_cluster_arns
+    @connection_error = scope_error || region_error_summary(@region_errors, @regions.size)
+  end
+
+  # ARNs carry their own region, so downstream calls are routed by parsing it
+  # back out rather than by threading a region through every method.
+  def ecs_for(region)
+    (@clients ||= {})[region] ||= ::Aws::ECS::Client.new(region: region)
+  end
+
+  def region_of(arn)
+    arn.to_s.split(':')[3]
   end
 
   def fetch_cluster_arns
-    arns = []
-    token = nil
-    loop do
-      resp = nil
-      catch_aws_errors do
+    each_region_collecting(@regions) do |region|
+      client = ecs_for(region)
+      arns = []
+      token = nil
+      loop do
         args = {}
         args[:next_token] = token if token
-        resp = @aws.ecs_client.list_clusters(args)
+        resp = client.list_clusters(args)
+        arns.concat(resp.cluster_arns)
+        token = resp.next_token
+        break unless token
       end
-      break unless resp
-      arns.concat(resp.cluster_arns)
-      token = resp.next_token
-      break unless token
+      arns
     end
-    arns
   end
 
   def service_keys
     @service_keys ||= @cluster_arns.flat_map do |cluster_arn|
+      client = ecs_for(region_of(cluster_arn))
       arns = []
       token = nil
-      loop do
-        resp = nil
-        catch_aws_errors do
+      begin
+        loop do
           args = { cluster: cluster_arn }
           args[:next_token] = token if token
-          resp = @aws.ecs_client.list_services(args)
+          resp = client.list_services(args)
+          arns.concat(resp.service_arns)
+          token = resp.next_token
+          break unless token
         end
-        break unless resp
-        arns.concat(resp.service_arns)
-        token = resp.next_token
-        break unless token
+      rescue ::Aws::Errors::ServiceError => e
+        (@region_errors ||= {})[region_of(cluster_arn)] = "list_services: #{e.message}"
       end
       arns.map { |s| { cluster: cluster_arn, service: s } }
     end
@@ -73,36 +89,33 @@ class AwsEcsInventory < AwsResourceBase
 
   def latest_active_task_definition_arns
     @latest_active_task_definition_arns ||= begin
-      families = []
-      token = nil
-      loop do
-        resp = nil
-        catch_aws_errors do
+      rows, errs = each_region_collecting(@regions) do |region|
+        client = ecs_for(region)
+        families = []
+        token = nil
+        loop do
           args = { status: "ACTIVE" }
           args[:next_token] = token if token
-          resp = @aws.ecs_client.list_task_definition_families(args)
+          resp = client.list_task_definition_families(args)
+          families.concat(resp.families)
+          token = resp.next_token
+          break unless token
         end
-        break unless resp
-        families.concat(resp.families)
-        token = resp.next_token
-        break unless token
-      end
-      families.map do |family|
-        resp = nil
-        catch_aws_errors do
-          resp = @aws.ecs_client.list_task_definitions(
+        families.map do |family|
+          client.list_task_definitions(
             family_prefix: family,
             status:        "ACTIVE",
             sort:          "DESC",
             max_results:   1,
-          )
-        end
-        resp&.task_definition_arns&.first
-      end.compact
+          ).task_definition_arns.first
+        end.compact
+      end
+      (@region_errors ||= {}).merge!(errs)
+      rows
     end
   end
 
   def to_s
-    "AWS ECS inventory (clusters=#{@cluster_arns.size})"
+    "AWS ECS inventory (clusters=#{@cluster_arns.size}, regions: #{@regions.join(', ')})"
   end
 end

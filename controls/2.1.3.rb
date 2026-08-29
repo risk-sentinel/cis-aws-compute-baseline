@@ -120,31 +120,50 @@ control 'C-2.1.3' do
     applicable
   end
 
-  approved = Array(input('approved_amis'))
-  if approved.empty?
-    # Empty input is a CONFIGURATION FAILURE, not an attestation slot.
-    # CIS 2.1.3 requires the consumer to declare an approved AMI catalog;
-    # without one, the control cannot evaluate compliance and must
-    # not pass silently. Populate `approved_amis` with the AMI IDs
-    # the organization has vetted (typically a Packer-bake output set
-    # or AWS-curated golden-AMI IDs).
-    describe 'approved_amis input' do
-      it 'must be populated for CIS 2.1.3 to evaluate' do
-        expect(approved).not_to be_empty,
-          'Set approved_amis to a list of AMI IDs the organization has vetted (e.g., [ami-0123456789abcdef0, ami-0fedcba9876543210]). Empty input means CIS 2.1.3 has no allowlist to evaluate against; flagged as FAIL rather than silently skipping.'
-      end
+  approved  = Array(input('approved_amis')).map(&:to_s)
+  patterns  = Array(input('approved_ami_name_patterns')).map(&:to_s)
+  owners    = Array(input('trusted_ami_owner_ids')).map(&:to_s)
+
+  amis = aws_ec2_amis_in_use(
+    regions:                 compute_scan_regions,
+    trusted_owners:          owners,
+    approved_ids:            approved,
+    approved_name_patterns:  patterns,
+  )
+
+  if amis.connection_error
+    describe 'AMI provenance' do
+      skip "AMIs in use could not be enumerated: #{amis.connection_error}"
     end
   else
-    approved_set = approved.map(&:to_s)
-    # Vendored aws_ec2_instances FilterTable does not register `state` or
-    # `image_id` columns — `.where { state == "running" }` raises
-    # NameError. The local aws_ec2_inventory exposes every instance field
-    # via `to_h`, so iterate it directly.
-    aws_ec2_inventory.instances.each do |inst|
-      next unless inst.dig(:state, :name).to_s == "running"
-      describe "EC2 instance #{inst[:instance_id]} AMI" do
-        subject { inst[:image_id].to_s }
-        it { should be_in approved_set }
+    # Provenance signals that need no configuration. These assert something on
+    # the first run, before anyone has curated policy -- which is the point,
+    # since no policy is the state an adopter starts in.
+    describe amis do
+      its('public_amis')          { should be_empty }
+      its('deregistered_amis')    { should be_empty }
+      its('untrusted_owner_amis') { should be_empty }
+    end
+
+    if amis.approval_vectors.empty?
+      # No vector declared at all. Still a configuration failure rather than an
+      # attestation slot -- but the message now carries what is running and the
+      # names it could be matched on, so policy can be derived from the estate
+      # instead of invented.
+      describe 'AMI approval policy' do
+        it 'must declare at least one approval vector for CIS 2.1.3 to evaluate' do
+          expect(amis.approval_vectors).not_to be_empty,
+            "Declare at least one of approved_amis (explicit IDs), " \
+            "approved_ami_name_patterns (e.g. ['*_GOLD_*']), or " \
+            "trusted_ami_owner_ids (a bake account). " \
+            "In use right now: #{amis.inventory.join(' | ')}. " \
+            "Names available to match on: #{amis.suggested_name_patterns.join(', ')}."
+        end
+      end
+    else
+      describe "AMIs approved by none of #{amis.approval_vectors.join(' / ')}" do
+        subject { amis.unapproved_amis }
+        it { should be_empty }
       end
     end
   end

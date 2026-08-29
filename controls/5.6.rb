@@ -76,7 +76,7 @@ control 'C-5.6' do
     applicable
   end
 
-  inv = aws_lightsail_inventory(regions: input('scan_regions'))
+  inv = aws_lightsail_inventory(regions: compute_scan_regions)
   if inv.connection_error
     describe 'Amazon Lightsail inventory' do
       skip "Requires manual review and attestation provided for this control (#{inv.connection_error})"

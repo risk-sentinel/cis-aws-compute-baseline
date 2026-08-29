@@ -38,12 +38,27 @@ class AwsEc2UserDataSecretsScan < AwsResourceBase
 
   attr_reader :instances_with_secret_patterns, :connection_error
 
+  include RegionScope
+
+  attr_reader :regions, :region_errors
+
   def initialize(opts = {})
+    opts = opts.dup
+    region_override = Array(opts.delete(:regions))
     super(opts)
     validate_parameters
     @instances_with_secret_patterns = []
     @connection_error = nil
-    fetch_data
+    @region_errors = {}
+    @regions, scope_error = resolve_region_scope(@aws, region_override)
+    @connection_error = scope_error
+    fetch_data unless scope_error
+    summary = region_error_summary(@region_errors, @regions.size)
+    @connection_error ||= summary
+  end
+
+  def ec2_for(region)
+    (@clients ||= {})[region] ||= ::Aws::EC2::Client.new(region: region)
   end
 
   def exists?
@@ -57,41 +72,40 @@ class AwsEc2UserDataSecretsScan < AwsResourceBase
   private
 
   def fetch_data
-    instance_ids = []
-    begin
-      paginate_describe_instances do |resp|
+    # Every region, and an instance carries the region whose client can read its
+    # user data. A region that cannot be listed is recorded rather than skipped,
+    # so an unreadable region does not read as "no secrets found here".
+    targets, @region_errors = each_region_collecting(@regions) do |region|
+      ids = []
+      paginate_describe_instances(region) do |resp|
         Array(resp.reservations).each do |r|
           Array(r.instances).each do |i|
-            instance_ids << i.instance_id if i.state && i.state.name == "running"
+            ids << [region, i.instance_id] if i.state && i.state.name == "running"
           end
         end
       end
-    rescue ::Aws::Errors::ServiceError => e
-      @connection_error = "describe_instances failed: #{e.class.name}: #{e.message}"
-      return
+      ids
     end
 
-    instance_ids.each do |id|
-      scan_instance(id)
-    end
+    targets.each { |region, id| scan_instance(region, id) }
   end
 
-  def paginate_describe_instances
+  def paginate_describe_instances(region)
     token = nil
     loop do
       args = {}
       args[:next_token] = token if token
-      resp = @aws.compute_client.describe_instances(args)
+      resp = ec2_for(region).describe_instances(args)
       yield(resp)
       token = resp.next_token
       break unless token && !token.empty?
     end
   end
 
-  def scan_instance(instance_id)
+  def scan_instance(region, instance_id)
     raw = nil
     begin
-      resp = @aws.compute_client.describe_instance_attribute(
+      resp = ec2_for(region).describe_instance_attribute(
         instance_id: instance_id,
         attribute:   "userData",
       )
