@@ -71,6 +71,7 @@ control 'C-5.1' do
   tag severity:              'medium'
   tag severity_source:       'unassessed'
   tag nist:                  ['MP-6 a', 'SI-2 a']
+  tag nist_r4:               ['MP-6 a', 'SI-2 a']
   tag cci:                   ['CCI-001028', 'CCI-001225']
   tag cis_number:            '5.1'
   tag cis_rid:               '5.1'

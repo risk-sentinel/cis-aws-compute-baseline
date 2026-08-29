@@ -21,6 +21,7 @@ control 'C-16.1' do
   tag severity:              'medium'
   tag severity_source:       'unassessed'
   tag nist:                  ['SC-8', 'AC-8 a']
+  tag nist_r4:               ['SC-8']
   tag cci:                   ['CCI-002418', 'CCI-000051']
   tag cis_number:            '16.1'
   tag cis_rid:               '16.1'

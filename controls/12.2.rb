@@ -77,6 +77,7 @@ control 'C-12.2' do
   tag severity:              'medium'
   tag severity_source:       'unassessed'
   tag nist:                  ['AC-2 f', 'AU-2 a']
+  tag nist_r4:               ['AC-2 f', 'AU-2 a']
   tag cci:                   ['CCI-000011', 'CCI-000123']
   tag cis_number:            '12.2'
   tag cis_rid:               '12.2'

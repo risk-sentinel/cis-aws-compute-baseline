@@ -64,6 +64,7 @@ control 'C-2.14' do
   tag severity:              'medium'
   tag severity_source:       'unassessed'
   tag nist:                  ['CM-8 a 1', 'SI-4 a 1']
+  tag nist_r4:               ['CM-8 a 1', 'SI-4 a 1']
   tag cci:                   ['CCI-000389', 'CCI-002641']
   tag cis_number:            '2.14'
   tag cis_rid:               '2.14'
