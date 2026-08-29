@@ -62,7 +62,10 @@ control 'C-2.14' do
     2. Repeat Step 1 for each AWS Region used.
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['CM-8 a 1', 'SI-4 a 1']
+  tag ksi:                   ['KSI-MLA-RVL', 'KSI-PIY-GIV', 'KSI-SVC-EIS']
+  tag nist_r4:               ['CM-8 a 1', 'SI-4 a 1']
   tag cci:                   ['CCI-000389', 'CCI-002641']
   tag cis_number:            '2.14'
   tag cis_rid:               '2.14'

@@ -55,7 +55,10 @@ control 'C-2.12' do
     Note - If you get any errors running the modify-instance-attribute command confirm the instance id and the Device Name for that instance is correct.  The above command is referencing the typical default device name.
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['CM-8 a 1']
+  tag ksi:                   ['KSI-PIY-GIV']
+  tag nist_r4:               ['CM-8 a 1']
   tag cci:                   ['CCI-000389']
   tag cis_number:            '2.12'
   tag cis_rid:               '2.12'

@@ -69,7 +69,10 @@ control 'C-5.1' do
     13. Repeat steps no. 4 - 12 to apply any application updates required on the Lightsail instances that you are running.
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['MP-6 a', 'SI-2 a']
+  tag ksi:                   ['KSI-CMT-VTD']
+  tag nist_r4:               ['MP-6 a', 'SI-2 a']
   tag cci:                   ['CCI-001028', 'CCI-001225']
   tag cis_number:            '5.1'
   tag cis_rid:               '5.1'

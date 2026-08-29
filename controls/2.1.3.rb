@@ -93,7 +93,10 @@ control 'C-2.1.3' do
     Repeat the process for all other regions.
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['CM-8 a 1']
+  tag ksi:                   ['KSI-PIY-GIV']
+  tag nist_r4:               ['CM-8 a 1']
   tag cci:                   ['CCI-000389']
   tag cis_number:            '2.1.3'
   tag cis_rid:               '2.1.3'
