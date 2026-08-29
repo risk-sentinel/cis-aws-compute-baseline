@@ -73,6 +73,7 @@ control 'C-12.3' do
   tag severity:              'medium'
   tag severity_source:       'unassessed'
   tag nist:                  ['CM-7 a', 'AC-3', 'AC-18 a']
+  tag ksi:                   ['KSI-CMT-RMV', 'KSI-IAM-APM', 'KSI-IAM-ELP', 'KSI-IAM-JIT']
   tag nist_r4:               ['AC-18 a', 'AC-3', 'CM-7 a']
   tag cci:                   ['CCI-000381', 'CCI-000213', 'CCI-002323']
   tag cis_number:            '12.3'

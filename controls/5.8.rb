@@ -121,6 +121,7 @@ control 'C-5.8' do
   tag severity:              'medium'
   tag severity_source:       'unassessed'
   tag nist:                  ['AC-3', 'SC-28', 'AC-11 b']
+  tag ksi:                   ['KSI-IAM-APM', 'KSI-IAM-ELP', 'KSI-IAM-JIT', 'KSI-SVC-SIN']
   tag nist_r4:               ['AC-11 b', 'AC-3', 'SC-28']
   tag cci:                   ['CCI-000213', 'CCI-001199', 'CCI-000056']
   tag cis_number:            '5.8'

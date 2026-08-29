@@ -82,6 +82,7 @@ control 'C-12.12' do
   tag severity:              'medium'
   tag severity_source:       'unassessed'
   tag nist:                  ['SC-8', 'SC-28', 'SI-3 a']
+  tag ksi:                   ['KSI-CMT-RMV', 'KSI-CNA-DFP', 'KSI-CNA-MAT', 'KSI-CNA-ULN', 'KSI-IAM-ELP', 'KSI-SVC-SIN']
   tag nist_r4:               ['SC-28', 'SC-8', 'SI-3 a']
   tag cci:                   ['CCI-002418', 'CCI-001199', 'CCI-002619']
   tag cis_number:            '12.12'

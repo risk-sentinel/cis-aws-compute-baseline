@@ -72,6 +72,7 @@ control 'C-12.5' do
   tag severity:              'medium'
   tag severity_source:       'unassessed'
   tag nist:                  ['AC-3', 'AU-4']
+  tag ksi:                   ['KSI-IAM-APM', 'KSI-IAM-ELP', 'KSI-IAM-JIT', 'KSI-MLA-OSM']
   tag nist_r4:               ['AC-3', 'AU-4']
   tag cci:                   ['CCI-000213', 'CCI-001848']
   tag cis_number:            '12.5'

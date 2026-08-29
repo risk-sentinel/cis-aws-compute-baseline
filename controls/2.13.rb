@@ -70,6 +70,7 @@ control 'C-2.13' do
   tag severity:              'medium'
   tag severity_source:       'unassessed'
   tag nist:                  ['SI-4 a 1', 'RA-2 a', 'AC-3', 'IA-5 (1) (e)']
+  tag ksi:                   ['KSI-IAM-APM', 'KSI-IAM-ELP', 'KSI-IAM-JIT', 'KSI-MLA-RVL', 'KSI-SVC-EIS']
   tag nist_r4:               ['AC-3', 'IA-5 (1) (e)', 'RA-2 a', 'SI-4 a 1']
   tag cci:                   ['CCI-002641', 'CCI-001045', 'CCI-000213', 'CCI-000200']
   tag cis_number:            '2.13'

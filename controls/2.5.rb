@@ -102,6 +102,7 @@ control 'C-2.5' do
   tag severity:              'medium'
   tag severity_source:       'unassessed'
   tag nist:                  ['CM-8 a 1']
+  tag ksi:                   ['KSI-PIY-GIV']
   tag nist_r4:               ['CM-8 a 1']
   tag cci:                   ['CCI-000389']
   tag cis_number:            '2.5'
