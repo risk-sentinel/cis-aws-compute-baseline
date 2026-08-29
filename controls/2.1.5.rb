@@ -53,7 +53,10 @@ control 'C-2.1.5' do
     Add AWS Account Number if you have a need to share with other Internal AWS accounts that your Organization owns.
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['AC-2 f', 'SC-28']
+  tag ksi:                   ['KSI-IAM-APM', 'KSI-IAM-JIT', 'KSI-IAM-SNU', 'KSI-IAM-SUS', 'KSI-SVC-SIN']
+  tag nist_r4:               ['AC-2 f', 'SC-28']
   tag cci:                   ['CCI-000011', 'CCI-001199']
   tag cis_number:            '2.1.5'
   tag cis_rid:               '2.1.5'

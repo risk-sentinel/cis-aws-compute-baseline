@@ -173,7 +173,10 @@ control 'C-2.9' do
     If you create other instances that you want to configure using Systems Manager, specify the instance profile for each instance
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['CM-8 a 1']
+  tag ksi:                   ['KSI-PIY-GIV']
+  tag nist_r4:               ['CM-8 a 1']
   tag cci:                   ['CCI-000389']
   tag cis_number:            '2.9'
   tag cis_rid:               '2.9'

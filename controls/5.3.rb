@@ -134,7 +134,10 @@ control 'C-5.3' do
     2. Repeat for all instance names identified in the audit that have SSH, RDP or HTTP's open and are not required based on the OS or the use of the system.
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['CM-7 a', 'SI-4 (11)']
+  tag ksi:                   ['KSI-CMT-RMV', 'KSI-IAM-JIT']
+  tag nist_r4:               ['CM-7 a', 'SI-4 (11)']
   tag cci:                   ['CCI-000381', 'CCI-002668']
   tag cis_number:            '5.3'
   tag cis_rid:               '5.3'

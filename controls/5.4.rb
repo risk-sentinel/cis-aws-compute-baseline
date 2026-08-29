@@ -122,7 +122,10 @@ control 'C-5.4' do
     3. Repeat the remediation below for all other instances identified in the Audit.
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['AC-3', 'AC-8 a']
+  tag ksi:                   ['KSI-IAM-APM', 'KSI-IAM-ELP', 'KSI-IAM-JIT']
+  tag nist_r4:               ['AC-3']
   tag cci:                   ['CCI-000213', 'CCI-000051']
   tag cis_number:            '5.4'
   tag cis_rid:               '5.4'

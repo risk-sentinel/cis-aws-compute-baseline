@@ -75,7 +75,9 @@ control 'C-2.1.4' do
     Repeat these steps for any other AMIs older than 90 days.
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['MA-3 a']
+  tag nist_r4:               ['MA-3']
   tag cci:                   ['CCI-000865']
   tag cis_number:            '2.1.4'
   tag cis_rid:               '2.1.4'

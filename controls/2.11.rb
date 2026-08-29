@@ -49,7 +49,10 @@ control 'C-2.11' do
     Repeat all steps for the other regions.
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['CM-8 a 1']
+  tag ksi:                   ['KSI-PIY-GIV']
+  tag nist_r4:               ['CM-8 a 1']
   tag cci:                   ['CCI-000389']
   tag cis_number:            '2.11'
   tag cis_rid:               '2.11'

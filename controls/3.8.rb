@@ -70,7 +70,9 @@ control 'C-3.8' do
     ```
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['MA-3 a']
+  tag nist_r4:               ['MA-3']
   tag cci:                   ['CCI-000865']
   tag cis_number:            '3.8'
   tag cis_rid:               '3.8'

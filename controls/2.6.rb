@@ -70,7 +70,10 @@ control 'C-2.6' do
     3. Wait a few minutes and run the same command again for that instance and it will show enabled.
   "
   tag severity:              'medium'
+  tag severity_source:       'unassessed'
   tag nist:                  ['AC-2 f', 'AU-2 a']
+  tag ksi:                   ['KSI-CMT-LMC', 'KSI-IAM-APM', 'KSI-IAM-JIT', 'KSI-IAM-SNU', 'KSI-IAM-SUS', 'KSI-MLA-LET', 'KSI-MLA-OSM', 'KSI-MLA-RVL']
+  tag nist_r4:               ['AC-2 f', 'AU-2 a']
   tag cci:                   ['CCI-000011', 'CCI-000123']
   tag cis_number:            '2.6'
   tag cis_rid:               '2.6'
