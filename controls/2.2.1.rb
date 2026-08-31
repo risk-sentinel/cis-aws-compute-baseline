@@ -94,8 +94,13 @@ control 'C-2.2.1' do
     applicable
   end
 
+  # Resolved here, on the control. `compute_scan_regions` is included into
+  # ::Inspec::Rule, so it exists on the control and not on the example the
+  # subject block runs in; calling it inside the block raises NameError at exec.
+  scan_regions = compute_scan_regions
+
   describe 'EBS volumes with encryption disabled' do
-    subject { aws_ebs_volumes_multi_region(regions: compute_scan_regions).where(encrypted: false).volume_ids }
+    subject { aws_ebs_volumes_multi_region(regions: scan_regions).where(encrypted: false).volume_ids }
     it { should be_empty }
   end
 end

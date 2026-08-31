@@ -74,6 +74,10 @@ class AwsElasticBeanstalkEnvironments < AwsResourceBase
   end
 
   def walk_region(region)
+    # Bundled in the auditor image is not the same as loaded: without this the
+    # first call raises `uninitialized constant Aws::ElasticBeanstalk`, which
+    # `check` and `json` never see because they do not run control bodies.
+    require 'aws-sdk-elasticbeanstalk' unless defined?(::Aws::ElasticBeanstalk::Client)
     client = ::Aws::ElasticBeanstalk::Client.new(region: region)
     list_environments(client, region).each do |env|
       classify(client, region, env)

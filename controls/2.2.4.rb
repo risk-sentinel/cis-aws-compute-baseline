@@ -99,8 +99,11 @@ control 'C-2.2.4' do
     applicable
   end
 
+  # Resolved on the control, not in the example — see 2.2.1.
+  scan_regions = compute_scan_regions
+
   describe 'EBS volumes in available (unattached) state' do
-    subject { aws_ebs_volumes_multi_region(regions: compute_scan_regions).where(state: 'available').volume_ids }
+    subject { aws_ebs_volumes_multi_region(regions: scan_regions).where(state: 'available').volume_ids }
     it { should be_empty }
   end
 end
