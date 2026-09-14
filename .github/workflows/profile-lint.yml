@@ -91,6 +91,23 @@ jobs:
             || { echo "::error::json produced no controls"; exit 1; }
           echo "json loaded $(jq '.controls | length' /tmp/profile.json) controls"
 
+      - name: Region scope contract (stubbed AWS, no credentials)
+        # scan_regions decides what gets assessed, so its contract is load-bearing
+        # evidence: an explicit list is honoured verbatim, ["*"] sweeps the
+        # partition, and an EMPTY list is refused rather than guessed at.
+        #
+        # The refusal is the point. Empty used to mean "discover everything" here
+        # and "current region only" in another profile — one knob, two opposite
+        # meanings, with nothing in the HDF saying which had happened.
+        #
+        # Tested in the failing direction too: a resolver that always errored, or
+        # never errored, would each pass a one-sided test.
+        run: |
+          set -uo pipefail
+          docker run --rm -v "$PWD:/work" -w /work \
+            --entrypoint /opt/cinc-workstation/embedded/bin/ruby \
+            "${AUDITOR_IMAGE}" tests/unit/region_scope_test.rb
+
       - name: Control-tag completeness
         # `check` and `json` read tags but assert nothing about them. A control
         # with no Rev 4 anchor, a tag written twice, or a tag whose value is a

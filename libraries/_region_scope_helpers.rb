@@ -23,18 +23,40 @@
 # override is always passed in by the caller rather than read here.
 
 module RegionScope
+  # Sweep every enabled region in the partition. Must be asked for explicitly.
+  ALL_REGIONS = "*".freeze
+
   # Resolve which regions to walk.
   #
-  # `override` (the consumer's `scan_regions`) wins when non-empty. Otherwise the
-  # partition's enabled regions, which narrows to GovCloud or any other partition
-  # automatically because describe_regions is answered by the caller's endpoint.
+  # The consumer's `scan_regions` decides, and it must SAY something:
+  #
+  #   ["us-east-1", "us-west-2"]  -> exactly those
+  #   ["*"]                       -> every enabled region in the partition
+  #   []                          -> ERROR. We refuse to guess.
+  #
+  # Empty used to mean "discover everything". That was safe but silent: nothing
+  # in the evidence recorded whether a narrow scan was intended or accidental,
+  # and the same empty input meant "current region only" in another profile --
+  # the same knob with two opposite meanings across the fleet. An assessor
+  # reading the HDF could not tell which had happened.
+  #
+  # So empty is now an error the caller must surface. A full sweep is still
+  # available, but only by asking for it, which puts the intent in the inputs
+  # where an assessor can see it.
   #
   # Returns [regions, error]. A nil error means the list is trustworthy; a
-  # non-nil error means we could not establish scope at all, which callers must
-  # surface rather than treat as "no regions, nothing to check".
+  # non-nil error means we could not establish scope, which callers must surface
+  # rather than treat as "no regions, nothing to check".
   def resolve_region_scope(aws, override = [])
-    wanted = Array(override).map(&:to_s).reject(&:empty?)
-    return [wanted, nil] unless wanted.empty?
+    wanted = Array(override).map(&:to_s).map(&:strip).reject(&:empty?)
+
+    if wanted.empty?
+      return [[], "no scan_regions supplied -- refusing to assess a single region " \
+                  "silently. Set scan_regions to the regions in scope, or to " \
+                  "[\"#{ALL_REGIONS}\"] to sweep every enabled region in the partition."]
+    end
+
+    return [wanted, nil] unless wanted.include?(ALL_REGIONS)
 
     begin
       regions = aws.compute_client.describe_regions.regions.map(&:region_name)

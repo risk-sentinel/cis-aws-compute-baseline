@@ -91,10 +91,27 @@ module ComputeServiceScopeHelpers
 
   private
 
+  # Control-scope twin of RegionScope#resolve_region_scope, and it MUST keep the
+  # same contract. If this layer quietly discovered regions on an empty input,
+  # the resource layer's refusal would never fire -- the resource would simply be
+  # handed a non-empty list and the fail-closed check would be cosmetic.
+  #
+  #   ["us-east-1", ...] -> exactly those
+  #   ["*"]              -> every enabled region in the partition
+  #   []                 -> ERROR. We refuse to guess.
   def _scan_regions
     return REGION_CACHE[:regions] if REGION_CACHE.key?(:regions)
-    override = Array(input('scan_regions')).map(&:to_s).reject(&:empty?)
+    override = Array(input('scan_regions')).map(&:to_s).map(&:strip).reject(&:empty?)
+
     if override.empty?
+      REGION_CACHE[:error] =
+        'no scan_regions supplied -- refusing to assess a single region silently. ' \
+        'Set scan_regions to the regions in scope, or to ["*"] to sweep every ' \
+        'enabled region in the partition.'
+      return REGION_CACHE[:regions] = []
+    end
+
+    if override.include?('*')
       begin
         override = inspec.backend.compute_client.describe_regions.regions.map(&:region_name)
       rescue StandardError => e
@@ -102,6 +119,7 @@ module ComputeServiceScopeHelpers
         override = []
       end
     end
+
     REGION_CACHE[:regions] = override
   end
 
