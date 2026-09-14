@@ -107,6 +107,71 @@ module RegionScope
     [rows, errors]
   end
 
+  # Yield a freshly constructed, region-bound client per region.
+  #
+  # The sibling of each_region_collecting, for resources that accumulate into
+  # their own structures rather than returning rows. Clients are constructed
+  # DIRECTLY rather than through @aws.aws_client: that accessor caches by class
+  # with no region in the key, so every region would be serialised through one
+  # client bound to one region -- the original bug, reintroduced.
+  #
+  # A region that raises is recorded in region_errors and skipped, so a partial
+  # sweep is visible rather than passing as a complete one.
+  def each_region_client(klass)
+    @region_errors ||= {}
+    Array(@all_regions).each do |region|
+      begin
+        yield(klass.new(region: region), region)
+      rescue StandardError => e
+        @region_errors[region] = "#{e.class}: #{e.message}"
+      end
+    end
+  end
+
+  def region_errors
+    @region_errors ||= {}
+  end
+
+  def regions_scanned
+    Array(@all_regions) - region_errors.keys
+  end
+
+  # Page through a list call until the cursor is exhausted, returning every
+  # response so the caller can take whichever member it needs.
+  #
+  # WHY THIS EXISTS: several resources called describe_* once and used the first
+  # page. AWS caps most list calls, so past that cap they silently under-report --
+  # the same defect as region blindness, one axis over. A control then passes
+  # against a partial set, and nothing in the evidence says the answer was cut off.
+  #
+  # Covers the cursor styles in use: next_token, marker/next_marker.
+  #
+  # Refuses to return a partial answer quietly. A cursor that does not advance
+  # would otherwise spin forever, and a silent break would hand back a truncated
+  # result that looks complete -- so both raise.
+  def paginate_all(cursor: :next_token, args: {}, max_pages: 200)
+    responses = []
+    token = nil
+    pages = 0
+    loop do
+      call_args = args.dup
+      call_args[cursor] = token if token
+      resp = yield(call_args)
+      break if resp.nil?
+      responses << resp
+      nxt = resp.respond_to?(cursor) ? resp.public_send(cursor) : nil
+      nxt = resp.next_marker if nxt.nil? && resp.respond_to?(:next_marker)
+      break if nxt.nil? || nxt.to_s.empty?
+      raise "paginate_all: cursor #{cursor} did not advance -- refusing to loop" if nxt == token
+      pages += 1
+      if pages > max_pages
+        raise "paginate_all: exceeded #{max_pages} pages -- refusing to return a partial answer silently"
+      end
+      token = nxt
+    end
+    responses
+  end
+
   # Route a single-target lookup to the right region.
   #
   # An ARN carries its own region, so an identifier that is one answers the
