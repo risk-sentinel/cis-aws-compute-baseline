@@ -23,18 +23,51 @@
 # override is always passed in by the caller rather than read here.
 
 module RegionScope
+  # Raised when a list call cannot be paged safely. A named class rather than a
+  # raised string: callers can rescue this specifically, and the class name says
+  # what went wrong in a backtrace.
+  #
+  # Inherits StandardError deliberately. each_region_client rescues StandardError
+  # per region and records the reason in region_errors, which surfaces through
+  # region_error_summary as a connection_error -- so a pagination failure stays
+  # VISIBLE as an unassessed region rather than vanishing. catch_aws_errors only
+  # rescues Aws::Errors::*, so it propagates past that.
+  class PaginationError < StandardError; end
+
+  # Sweep every enabled region in the partition. Must be asked for explicitly.
+  ALL_REGIONS = "*".freeze
+
   # Resolve which regions to walk.
   #
-  # `override` (the consumer's `scan_regions`) wins when non-empty. Otherwise the
-  # partition's enabled regions, which narrows to GovCloud or any other partition
-  # automatically because describe_regions is answered by the caller's endpoint.
+  # The consumer's `scan_regions` decides, and it must SAY something:
+  #
+  #   ["us-east-1", "us-west-2"]  -> exactly those
+  #   ["*"]                       -> every enabled region in the partition
+  #   []                          -> ERROR. We refuse to guess.
+  #
+  # Empty used to mean "discover everything". That was safe but silent: nothing
+  # in the evidence recorded whether a narrow scan was intended or accidental,
+  # and the same empty input meant "current region only" in another profile --
+  # the same knob with two opposite meanings across the fleet. An assessor
+  # reading the HDF could not tell which had happened.
+  #
+  # So empty is now an error the caller must surface. A full sweep is still
+  # available, but only by asking for it, which puts the intent in the inputs
+  # where an assessor can see it.
   #
   # Returns [regions, error]. A nil error means the list is trustworthy; a
-  # non-nil error means we could not establish scope at all, which callers must
-  # surface rather than treat as "no regions, nothing to check".
+  # non-nil error means we could not establish scope, which callers must surface
+  # rather than treat as "no regions, nothing to check".
   def resolve_region_scope(aws, override = [])
-    wanted = Array(override).map(&:to_s).reject(&:empty?)
-    return [wanted, nil] unless wanted.empty?
+    wanted = Array(override).map(&:to_s).map(&:strip).reject(&:empty?)
+
+    if wanted.empty?
+      return [[], "no scan_regions supplied -- refusing to assess a single region " \
+                  "silently. Set scan_regions to the regions in scope, or to " \
+                  "[\"#{ALL_REGIONS}\"] to sweep every enabled region in the partition."]
+    end
+
+    return [wanted, nil] unless wanted.include?(ALL_REGIONS)
 
     begin
       regions = aws.compute_client.describe_regions.regions.map(&:region_name)
@@ -43,6 +76,25 @@ module RegionScope
     rescue ::Aws::Errors::ServiceError, ::Aws::Errors::MissingRegionError => e
       [[], "could not enumerate regions (#{e.class}: #{e.message})"]
     end
+  end
+
+  # Establish scope, or fail the resource loudly.
+  #
+  # Preferred over calling resolve_region_scope directly. On failure it marks the
+  # resource failed in InSpec core, so EVERY control using it reports the reason
+  # -- without each control having to remember to assert a scope error. There are
+  # 83 call sites across this fleet; relying on each one to check would guarantee
+  # some of them silently did not, which is the exact failure being designed out.
+  #
+  # Returns the regions, or [] having already failed the resource.
+  def region_scope_or_fail!(aws, override = [])
+    regions, error = resolve_region_scope(aws, override)
+    return regions if error.nil?
+
+    @failed_resource  = true
+    @connection_error = error
+    fail_resource(error)
+    []
   end
 
   # Walk regions, collecting rows. The block is called with each region name and
@@ -64,6 +116,76 @@ module RegionScope
       end
     end
     [rows, errors]
+  end
+
+  # Yield a freshly constructed, region-bound client per region.
+  #
+  # The sibling of each_region_collecting, for resources that accumulate into
+  # their own structures rather than returning rows. Clients are constructed
+  # DIRECTLY rather than through @aws.aws_client: that accessor caches by class
+  # with no region in the key, so every region would be serialised through one
+  # client bound to one region -- the original bug, reintroduced.
+  #
+  # A region that raises is recorded in region_errors and skipped, so a partial
+  # sweep is visible rather than passing as a complete one.
+  def each_region_client(klass)
+    @region_errors ||= {}
+    Array(@all_regions).each do |region|
+      begin
+        yield(klass.new(region: region), region)
+      rescue StandardError => e
+        @region_errors[region] = "#{e.class}: #{e.message}"
+      end
+    end
+  end
+
+  def region_errors
+    @region_errors ||= {}
+  end
+
+  def regions_scanned
+    Array(@all_regions) - region_errors.keys
+  end
+
+  # Page through a list call until the cursor is exhausted, returning every
+  # response so the caller can take whichever member it needs.
+  #
+  # WHY THIS EXISTS: several resources called describe_* once and used the first
+  # page. AWS caps most list calls, so past that cap they silently under-report --
+  # the same defect as region blindness, one axis over. A control then passes
+  # against a partial set, and nothing in the evidence says the answer was cut off.
+  #
+  # Covers the cursor styles in use: next_token, marker/next_marker.
+  #
+  # Refuses to return a partial answer quietly. A cursor that does not advance
+  # would otherwise spin forever, and a silent break would hand back a truncated
+  # result that looks complete -- so both raise.
+  def paginate_all(cursor: :next_token, args: {}, max_pages: 200)
+    responses = []
+    token = nil
+    pages = 0
+    loop do
+      call_args = args.dup
+      call_args[cursor] = token if token
+      resp = yield(call_args)
+      break if resp.nil?
+      responses << resp
+      nxt = resp.respond_to?(cursor) ? resp.public_send(cursor) : nil
+      nxt = resp.next_marker if nxt.nil? && resp.respond_to?(:next_marker)
+      break if nxt.nil? || nxt.to_s.empty?
+      if nxt == token
+        raise PaginationError,
+              "paginate_all: cursor #{cursor} did not advance -- refusing to loop"
+      end
+      pages += 1
+      if pages > max_pages
+        raise PaginationError,
+              "paginate_all: exceeded #{max_pages} pages -- refusing to return a " \
+              "partial answer silently"
+      end
+      token = nxt
+    end
+    responses
   end
 
   # Route a single-target lookup to the right region.
