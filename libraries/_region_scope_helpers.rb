@@ -67,6 +67,25 @@ module RegionScope
     end
   end
 
+  # Establish scope, or fail the resource loudly.
+  #
+  # Preferred over calling resolve_region_scope directly. On failure it marks the
+  # resource failed in InSpec core, so EVERY control using it reports the reason
+  # -- without each control having to remember to assert a scope error. There are
+  # 83 call sites across this fleet; relying on each one to check would guarantee
+  # some of them silently did not, which is the exact failure being designed out.
+  #
+  # Returns the regions, or [] having already failed the resource.
+  def region_scope_or_fail!(aws, override = [])
+    regions, error = resolve_region_scope(aws, override)
+    return regions if error.nil?
+
+    @failed_resource  = true
+    @connection_error = error
+    fail_resource(error)
+    []
+  end
+
   # Walk regions, collecting rows. The block is called with each region name and
   # should return an array of rows for it.
   #
