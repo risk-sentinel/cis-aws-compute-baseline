@@ -124,7 +124,7 @@ jobs:
 include:
   - project: risk-sentinel/cis-aws-compute-baseline
     ref: v0.1.7
-    file: /ci/gitlab/exec-evidence.yml
+    file: /ci/jobs/exec-evidence.yml
     inputs:
       target: my-account
       boundary: my-boundary
