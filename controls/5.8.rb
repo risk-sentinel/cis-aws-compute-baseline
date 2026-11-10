@@ -120,10 +120,10 @@ control 'C-5.8' do
   "
   tag severity:              'medium'
   tag severity_source:       'unassessed'
-  tag nist:                  ['AC-3', 'SC-28', 'AC-11 b']
+  tag nist:                  ['AC-3', 'AC-6', 'AC-3 (11)', 'SC-28 (1)', 'SC-28']
   tag ksi:                   ['KSI-IAM-APM', 'KSI-IAM-ELP', 'KSI-IAM-JIT', 'KSI-SVC-SIN']
-  tag nist_r4:               ['AC-11 b', 'AC-3', 'SC-28']
-  tag cci:                   ['CCI-000213', 'CCI-001199', 'CCI-000056']
+  tag nist_r4:               ['AC-3', 'AC-6', 'SC-28', 'SC-28 (1)']
+  tag cci:                   ['CCI-000213', 'CCI-000225', 'CCI-003644', 'CCI-002476', 'CCI-002475', 'CCI-001199']
   tag cis_number:            '5.8'
   tag cis_rid:               '5.8'
   tag cis_benchmark:         'CIS AWS Compute Services Benchmark v1.1.0'

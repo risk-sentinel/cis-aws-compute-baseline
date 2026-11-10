@@ -56,10 +56,10 @@ control 'C-2.12' do
   "
   tag severity:              'medium'
   tag severity_source:       'unassessed'
-  tag nist:                  ['CM-8 a 1']
+  tag nist:                  ['CM-8 a 1', 'CM-8 a 2', 'CM-8 a 5', 'CM-8 b']
   tag ksi:                   ['KSI-PIY-GIV']
-  tag nist_r4:               ['CM-8 a 1']
-  tag cci:                   ['CCI-000389']
+  tag nist_r4:               ['CM-8 b']
+  tag cci:                   ['CCI-003962', 'CCI-003963', 'CCI-003967', 'CCI-001780']
   tag cis_number:            '2.12'
   tag cis_rid:               '2.12'
   tag cis_benchmark:         'CIS AWS Compute Services Benchmark v1.1.0'

@@ -62,10 +62,10 @@ control 'C-3.6' do
   "
   tag severity:              'medium'
   tag severity_source:       'unassessed'
-  tag nist:                  ['SI-12', 'RA-2 a', 'CM-8 a 1']
-  tag ksi:                   ['KSI-PIY-GIV', 'KSI-RPL-ABO']
-  tag nist_r4:               ['CM-8 a 1', 'RA-2 a', 'SI-12']
-  tag cci:                   ['CCI-001315', 'CCI-001045', 'CCI-000389']
+  tag nist:                  ['SI-12', 'SI-12 (3)', 'CM-12 a', 'PM-5 (1)']
+  tag ksi:                   ['KSI-PIY-GIV', 'KSI-RPL-ABO', 'KSI-SVC-RUD']
+  tag nist_r4:               ['SI-12']
+  tag cci:                   ['CCI-001315', 'CCI-001678', 'CCI-005008', 'CCI-003982', 'CCI-003983', 'CCI-004331', 'CCI-004333']
   tag cis_number:            '3.6'
   tag cis_rid:               '3.6'
   tag cis_benchmark:         'CIS AWS Compute Services Benchmark v1.1.0'
