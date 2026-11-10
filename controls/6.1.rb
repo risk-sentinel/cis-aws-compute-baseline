@@ -72,10 +72,10 @@ control 'C-6.1' do
   "
   tag severity:              'medium'
   tag severity_source:       'unassessed'
-  tag nist:                  ['SC-28', 'IA-5 (1) (e)', 'SI-3 a']
-  tag ksi:                   ['KSI-CMT-RMV', 'KSI-CNA-DFP', 'KSI-IAM-APM', 'KSI-IAM-ELP', 'KSI-SVC-SIN']
-  tag nist_r4:               ['IA-5 (1) (e)', 'SC-28', 'SI-3 a']
-  tag cci:                   ['CCI-001199', 'CCI-000200', 'CCI-002619']
+  tag nist:                  ['SC-28 (1)', 'SC-28']
+  tag ksi:                   ['KSI-SVC-SIN']
+  tag nist_r4:               ['SC-28', 'SC-28 (1)']
+  tag cci:                   ['CCI-002476', 'CCI-002475', 'CCI-001199']
   tag cis_number:            '6.1'
   tag cis_rid:               '6.1'
   tag cis_benchmark:         'CIS AWS Compute Services Benchmark v1.1.0'

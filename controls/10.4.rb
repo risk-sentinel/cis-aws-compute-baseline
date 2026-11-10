@@ -79,10 +79,10 @@ control 'C-10.4' do
   "
   tag severity:              'medium'
   tag severity_source:       'unassessed'
-  tag nist:                  ['SC-8', 'AC-8 a']
-  tag ksi:                   ['KSI-CNA-MAT', 'KSI-CNA-ULN', 'KSI-SVC-SIN']
-  tag nist_r4:               ['SC-8']
-  tag cci:                   ['CCI-002418', 'CCI-000051']
+  tag nist:                  ['SC-8 (1)', 'SC-8', 'AC-17 (2)', 'IA-5 (1) (c)']
+  tag ksi:                   ['KSI-CNA-MAT', 'KSI-CNA-ULN', 'KSI-IAM-APM', 'KSI-IAM-ELP', 'KSI-SVC-ASM', 'KSI-SVC-SIN']
+  tag nist_r4:               ['AC-17 (2)', 'IA-5 (1) (c)', 'SC-8', 'SC-8 (1)']
+  tag cci:                   ['CCI-002421', 'CCI-002418', 'CCI-000068', 'CCI-000197']
   tag cis_number:            '10.4'
   tag cis_rid:               '10.4'
   tag cis_benchmark:         'CIS AWS Compute Services Benchmark v1.1.0'
