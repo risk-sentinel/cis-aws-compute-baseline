@@ -72,10 +72,10 @@ control 'C-2.10' do
   "
   tag severity:              'medium'
   tag severity_source:       'unassessed'
-  tag nist:                  ['CP-2 a 1', 'SA-8']
-  tag ksi:                   ['KSI-PIY-RSD', 'KSI-RPL-ARP']
-  tag nist_r4:               ['CP-2 a 1', 'SA-8']
-  tag cci:                   ['CCI-000443', 'CCI-000664']
+  tag nist:                  ['PL-8 a 1', 'SA-8 (14)', 'SC-7 (21)', 'SC-7 b']
+  tag ksi:                   ['KSI-CNA-ULN', 'KSI-PIY-RSD', 'KSI-SVC-EIS']
+  tag nist_r4:               ['PL-8 a 1', 'SC-7 (21)', 'SC-7 b']
+  tag cci:                   ['CCI-003073', 'CCI-004742', 'CCI-002415', 'CCI-002395']
   tag cis_number:            '2.10'
   tag cis_rid:               '2.10'
   tag cis_benchmark:         'CIS AWS Compute Services Benchmark v1.1.0'

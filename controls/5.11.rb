@@ -82,10 +82,10 @@ control 'C-5.11' do
   "
   tag severity:              'medium'
   tag severity_source:       'unassessed'
-  tag nist:                  ['MP-6 a', 'SI-2 a']
-  tag ksi:                   ['KSI-CMT-VTD']
-  tag nist_r4:               ['MP-6 a', 'SI-2 a']
-  tag cci:                   ['CCI-001028', 'CCI-001225']
+  tag nist:                  ['SI-2 (5)', 'SI-2 (4)', 'SI-2 c', 'SI-2 (2)']
+  tag ksi:                   ['KSI-CMT-VTD', 'KSI-SVC-EIS']
+  tag nist_r4:               ['SI-2 (5)', 'SI-2 c']
+  tag cci:                   ['CCI-002613', 'CCI-004961', 'CCI-002605', 'CCI-004955']
   tag cis_number:            '5.11'
   tag cis_rid:               '5.11'
   tag cis_benchmark:         'CIS AWS Compute Services Benchmark v1.1.0'

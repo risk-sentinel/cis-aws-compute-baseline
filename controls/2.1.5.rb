@@ -54,10 +54,10 @@ control 'C-2.1.5' do
   "
   tag severity:              'medium'
   tag severity_source:       'unassessed'
-  tag nist:                  ['AC-2 f', 'SC-28']
-  tag ksi:                   ['KSI-IAM-APM', 'KSI-IAM-JIT', 'KSI-IAM-SNU', 'KSI-IAM-SUS', 'KSI-SVC-SIN']
-  tag nist_r4:               ['AC-2 f', 'SC-28']
-  tag cci:                   ['CCI-000011', 'CCI-001199']
+  tag nist:                  ['CP-9 (d)', 'CP-9 (8)']
+  tag ksi:                   ['KSI-RPL-ABO', 'KSI-SVC-SIN']
+  tag nist_r4:               ['CP-9']
+  tag cci:                   ['CCI-004022', 'CCI-004023', 'CCI-004025', 'CCI-004026']
   tag cis_number:            '2.1.5'
   tag cis_rid:               '2.1.5'
   tag cis_benchmark:         'CIS AWS Compute Services Benchmark v1.1.0'

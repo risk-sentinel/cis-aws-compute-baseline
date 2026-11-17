@@ -81,10 +81,10 @@ control 'C-12.9' do
   "
   tag severity:              'medium'
   tag severity_source:       'unassessed'
-  tag nist:                  ['AC-2 c']
-  tag ksi:                   ['KSI-IAM-APM', 'KSI-IAM-JIT', 'KSI-IAM-SNU', 'KSI-IAM-SUS']
-  tag nist_r4:               ['AC-2 c']
-  tag cci:                   ['CCI-002113']
+  tag nist:                  ['AC-6 (7) (a)', 'AC-6', 'AC-2 (7) (a)', 'AC-6 (7) (b)']
+  tag ksi:                   ['KSI-IAM-AAM', 'KSI-IAM-ELP', 'KSI-IAM-JIT']
+  tag nist_r4:               ['AC-2 (7) (a)', 'AC-6', 'AC-6 (7) (a)', 'AC-6 (7) (b)']
+  tag cci:                   ['CCI-002230', 'CCI-000225', 'CCI-001358', 'CCI-002231']
   tag cis_number:            '12.9'
   tag cis_rid:               '12.9'
   tag cis_benchmark:         'CIS AWS Compute Services Benchmark v1.1.0'
